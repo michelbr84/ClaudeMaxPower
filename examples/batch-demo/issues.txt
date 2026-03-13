@@ -1,0 +1,6 @@
+# issues.txt — Issue numbers to process in the batch demo
+# One issue number per line. Lines starting with # are comments.
+# Usage: ./run.sh <owner/repo>
+1
+2
+3

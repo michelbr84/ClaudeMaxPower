@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for changelog
+
+      - name: Get tag version
+        id: tag
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Run CI checks
+        run: |
+          # Validate JSON
+          jq empty .claude/settings.json
+          jq empty mcp/github-config.json
+          jq empty mcp/sentry-config.json
+
+          # Check for secrets
+          if grep -rn -E "ghp_[a-zA-Z0-9]{36}" \
+            --include="*.sh" --include="*.md" --include="*.json" .; then
+            echo "ERROR: Possible token in source!"
+            exit 1
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+          if [ -n "$PREV_TAG" ]; then
+            CHANGES=$(git log "${PREV_TAG}..HEAD" --oneline --pretty=format:"- %s (%h)")
+          else
+            CHANGES=$(git log --oneline --pretty=format:"- %s (%h)" | head -20)
+          fi
+
+          echo "changes<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create release archive
+        run: |
+          git archive --format=tar.gz \
+            --prefix=ClaudeMaxPower-${{ steps.tag.outputs.version }}/ \
+            HEAD \
+            -o ClaudeMaxPower-${{ steps.tag.outputs.version }}.tar.gz
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.version }}
+          name: "ClaudeMaxPower ${{ steps.tag.outputs.version }}"
+          body: |
+            ## ClaudeMaxPower ${{ steps.tag.outputs.version }}
+
+            ### What's Changed
+            ${{ steps.changelog.outputs.changes }}
+
+            ### Quick Start
+            ```bash
+            git clone https://github.com/${{ github.repository }}
+            cd ClaudeMaxPower
+            bash scripts/setup.sh
+            claude
+            ```
+
+            ### Documentation
+            See [docs/getting-started.md](docs/getting-started.md) to get up and running.
+          files: |
+            ClaudeMaxPower-${{ steps.tag.outputs.version }}.tar.gz
+          draft: false
+          prerelease: ${{ contains(steps.tag.outputs.version, '-') }}

@@ -1,0 +1,43 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "shell",
+        "command": "bash .claude/hooks/session-start.sh"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "shell",
+        "command": "bash .claude/hooks/pre-tool-use.sh",
+        "tools": ["Bash"]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "type": "shell",
+        "command": "bash .claude/hooks/post-tool-use.sh",
+        "tools": ["Edit", "Write"]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "shell",
+        "command": "bash .claude/hooks/stop.sh"
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(python3:*)",
+      "Bash(pytest:*)",
+      "Bash(gh:*)",
+      "Bash(jq:*)",
+      "Bash(shellcheck:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)"
+    ]
+  }
+}

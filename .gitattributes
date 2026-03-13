@@ -1,0 +1,17 @@
+# Ensure shell scripts always use LF (Unix) line endings
+# so they work correctly when cloned on Linux/macOS.
+*.sh text eol=lf
+*.py text eol=lf
+
+# All other text files: normalize to LF in the repo, convert to native on checkout
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.txt text eol=lf
+
+# Binary files: never convert
+*.pdf binary
+*.png binary
+*.jpg binary
+*.svg binary

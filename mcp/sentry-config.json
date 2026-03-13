@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sentry": {
+      "command": "npx",
+      "args": ["-y", "mcp-server-sentry"],
+      "env": {
+        "SENTRY_AUTH_TOKEN": "${SENTRY_TOKEN}",
+        "SENTRY_ORG": "${SENTRY_ORG}",
+        "SENTRY_PROJECT": "${SENTRY_PROJECT}"
+      }
+    }
+  }
+}

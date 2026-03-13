@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate-shell:
+    name: Validate Shell Scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Lint hook scripts
+        run: shellcheck .claude/hooks/*.sh
+
+      - name: Lint workflow scripts
+        run: shellcheck workflows/*.sh
+
+      - name: Lint setup scripts
+        run: shellcheck scripts/*.sh
+
+  validate-json:
+    name: Validate JSON Files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate settings.json
+        run: jq empty .claude/settings.json
+
+      - name: Validate MCP configs
+        run: |
+          jq empty mcp/github-config.json
+          jq empty mcp/sentry-config.json
+
+  validate-no-secrets:
+    name: Check for Secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure .env.example has no real secrets
+        run: |
+          if grep -qE "(ghp_[a-zA-Z0-9]{36}|sntrys_[a-zA-Z0-9]+)" .env.example; then
+            echo "ERROR: .env.example appears to contain real tokens!"
+            exit 1
+          fi
+          echo "OK: .env.example has no real tokens"
+
+      - name: Check for hardcoded tokens in source
+        run: |
+          if grep -rn \
+            -E "ghp_[a-zA-Z0-9]{36}" \
+            --include="*.sh" --include="*.md" --include="*.json" --include="*.py" \
+            --exclude-dir=".git" .; then
+            echo "ERROR: Possible GitHub token found in source files!"
+            exit 1
+          fi
+          echo "OK: No hardcoded tokens found"
+
+  lint-markdown:
+    name: Lint Markdown
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli
+
+      - name: Lint markdown files
+        run: |
+          markdownlint \
+            README.md \
+            docs/*.md \
+            mcp/README.md \
+            --config .markdownlint.json 2>/dev/null || \
+          markdownlint \
+            README.md \
+            docs/*.md \
+            --disable MD013 MD033 MD041 2>/dev/null || true
+
+  test-examples:
+    name: Run Example Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r examples/todo-app/requirements.txt
+
+      - name: Run todo-app tests
+        run: python -m pytest examples/todo-app/tests/ -v --tb=short
+        # Note: 3 tests are EXPECTED to fail (they demonstrate bugs for the fix-issue skill demo)
+        # We only check that pytest can run, not that all tests pass
+        continue-on-error: true
+
+      - name: Verify test structure
+        run: |
+          python -m pytest examples/todo-app/tests/ --collect-only -q
+          echo "Test collection successful"
+
+  check-structure:
+    name: Verify Project Structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required files exist
+        run: |
+          REQUIRED=(
+            "CLAUDE.md"
+            "README.md"
+            "LICENSE"
+            ".env.example"
+            ".gitignore"
+            ".claude/settings.json"
+            ".claude/hooks/session-start.sh"
+            ".claude/hooks/pre-tool-use.sh"
+            ".claude/hooks/post-tool-use.sh"
+            ".claude/hooks/stop.sh"
+            ".claude/agents/code-reviewer.md"
+            ".claude/agents/security-auditor.md"
+            ".claude/agents/doc-writer.md"
+            "skills/fix-issue.md"
+            "skills/review-pr.md"
+            "skills/refactor-module.md"
+            "skills/tdd-loop.md"
+            "skills/pre-commit.md"
+            "skills/generate-docs.md"
+            "workflows/batch-fix.sh"
+            "workflows/parallel-review.sh"
+            "workflows/mass-refactor.sh"
+            "workflows/dependency-graph.sh"
+            "mcp/github-config.json"
+            "mcp/sentry-config.json"
+            "docs/getting-started.md"
+            "docs/hooks-guide.md"
+            "docs/skills-guide.md"
+            "docs/agents-guide.md"
+            "docs/troubleshooting.md"
+          )
+
+          MISSING=0
+          for f in "${REQUIRED[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              MISSING=$((MISSING + 1))
+            else
+              echo "OK: $f"
+            fi
+          done
+
+          if [ "$MISSING" -gt 0 ]; then
+            echo ""
+            echo "$MISSING required file(s) missing!"
+            exit 1
+          fi
+
+          echo ""
+          echo "All required files present."
