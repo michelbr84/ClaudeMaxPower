@@ -65,6 +65,11 @@ else
   echo "  (skills/ directory not found)"
 fi
 
+# Auto Dream — background memory consolidation
+if [ -f "scripts/auto-dream.sh" ]; then
+  bash scripts/auto-dream.sh &>/dev/null &
+fi
+
 echo ""
 echo -e "${BLUE}============================================${NC}"
 echo ""

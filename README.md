@@ -1,8 +1,15 @@
 # ClaudeMaxPower
 
-**A complete open-source system for turning Claude Code into a more powerful, organized, automated, and production-ready AI coding workflow.**
+**Turn Claude Code into a coordinated AI engineering team.**
 
-ClaudeMaxPower is a GitHub template that shows you — through working examples — how to use every advanced Claude Code feature. Clone it, adapt it, and immediately work at a higher level.
+ClaudeMaxPower is a GitHub template that transforms Claude from a solo assistant into a full
+agent team — with hooks, skills, persistent memory, and Auto Dream memory consolidation.
+It works in two modes:
+
+- **New Project:** Install ClaudeMaxPower and it assembles a team (Architect + Implementer + Tester + Reviewer + Doc Writer) from day one
+- **Existing Project:** Add ClaudeMaxPower and it creates a team tailored to your pending work, accelerating completion
+
+Clone it, run `/assemble-team`, and watch Claude coordinate a team of specialized agents.
 
 ---
 
@@ -34,11 +41,12 @@ claude
 ClaudeMaxPower/
 ├── CLAUDE.md              ← Project-wide Claude instructions (layered)
 ├── .claude/
-│   ├── settings.json      ← Hook configuration
-│   ├── hooks/             ← Automated guards and quality gates
+│   ├── settings.json      ← Hook config + Agent Teams enabled
+│   ├── hooks/             ← Automated guards, quality gates, Auto Dream
 │   └── agents/            ← Specialized sub-agents with persistent memory
 ├── skills/                ← Reusable AI workflows (invoke with /skill-name)
 ├── workflows/             ← Batch automation scripts
+├── scripts/               ← Setup, verify, Auto Dream memory consolidation
 ├── mcp/                   ← MCP server configs (GitHub, Sentry)
 ├── examples/              ← Working demo projects
 └── docs/                  ← Detailed guides for every feature
@@ -50,10 +58,12 @@ ClaudeMaxPower/
 
 | Feature | What It Does |
 |---------|-------------|
+| **Agent Teams** | Assemble coordinated teams of specialized agents with `/assemble-team` |
+| **Auto Dream** | Background memory consolidation — prunes stale entries, rebuilds index |
 | **Layered CLAUDE.md** | Project-wide + subfolder-specific Claude instructions with `@imports` |
 | **Hooks** | Auto-run tests after edits, block dangerous commands, save session state |
-| **Skills** | Reusable `/fix-issue`, `/tdd-loop`, `/review-pr`, `/pre-commit`, and more |
-| **Sub-Agents** | Specialized agents (code reviewer, security auditor, doc writer) with memory |
+| **Skills** | Reusable `/fix-issue`, `/tdd-loop`, `/review-pr`, `/assemble-team`, and more |
+| **Sub-Agents** | Specialized agents (code reviewer, security auditor, doc writer, team coordinator) |
 | **Batch Workflows** | Fix multiple issues, mass-refactor, Writer/Reviewer pattern with worktrees |
 | **MCP Integrations** | Claude reads GitHub issues and Sentry errors directly |
 | **Example Projects** | Real code with intentional bugs to practice skills on |
@@ -63,20 +73,26 @@ ClaudeMaxPower/
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                     Claude Code                          │
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────┐ │
-│  │  CLAUDE.md   │  │    Hooks     │  │    Skills     │ │
-│  │  (context)   │  │  (guardrails)│  │  (workflows)  │ │
-│  └──────────────┘  └──────────────┘  └───────────────┘ │
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────┐ │
-│  │   Agents     │  │  Workflows   │  │      MCP      │ │
-│  │  (memory)    │  │  (batch/     │  │ (GitHub/      │ │
-│  │              │  │  parallel)   │  │  Sentry)      │ │
-│  └──────────────┘  └──────────────┘  └───────────────┘ │
-└─────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                      Claude Code + ClaudeMaxPower             │
+│                                                               │
+│  ┌───────────────┐  ┌───────────────┐  ┌──────────────────┐ │
+│  │  CLAUDE.md    │  │    Hooks      │  │     Skills       │ │
+│  │  (context)    │  │  (guardrails) │  │  (workflows)     │ │
+│  └───────────────┘  └───────────────┘  └──────────────────┘ │
+│                                                               │
+│  ┌───────────────┐  ┌───────────────┐  ┌──────────────────┐ │
+│  │ Agent Teams   │  │  Workflows    │  │       MCP        │ │
+│  │ (coordinator  │  │  (batch/      │  │  (GitHub/        │ │
+│  │  + teammates) │  │  parallel)    │  │   Sentry)        │ │
+│  └───────────────┘  └───────────────┘  └──────────────────┘ │
+│                                                               │
+│  ┌───────────────┐  ┌───────────────┐                        │
+│  │  Auto Dream   │  │   Memory      │                        │
+│  │  (consolidate │  │  (persistent  │                        │
+│  │   memories)   │  │   context)    │                        │
+│  └───────────────┘  └───────────────┘                        │
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -87,6 +103,7 @@ Invoke any skill with `/skill-name [arguments]` inside Claude Code.
 
 | Skill | Command | Description |
 |-------|---------|-------------|
+| **Assemble Team** | `/assemble-team --mode new-project --description "..."` | Assemble an agent team tailored to your project |
 | Fix Issue | `/fix-issue --issue 1 --repo owner/repo` | Read GitHub issue → write failing test → fix bug → open PR |
 | Review PR | `/review-pr --pr 42 --repo owner/repo` | Full structured review → post comment via gh |
 | Refactor Module | `/refactor-module --file src/foo.py --goal "extract validation"` | Safe refactor with test baseline |
@@ -115,6 +132,7 @@ Agents are invoked by Claude as sub-sessions with specialized roles.
 
 | Agent | Memory | Role |
 |-------|--------|------|
+| `team-coordinator` | project | Orchestrates agent teams — spawns, coordinates, synthesizes |
 | `code-reviewer` | project | Strict code review — correctness, security, tests |
 | `security-auditor` | project | OWASP Top 10 scan, dependency audit, secret detection |
 | `doc-writer` | user | Generates README, API docs, guides — adapts to your style |
@@ -142,6 +160,8 @@ Agents are invoked by Claude as sub-sessions with specialized roles.
 ## Documentation
 
 - [Getting Started](docs/getting-started.md) — prerequisites, setup, first run
+- [Agent Teams Guide](docs/agent-teams-guide.md) — assembling and coordinating agent teams
+- [Auto Dream Guide](docs/auto-dream-guide.md) — memory consolidation system
 - [Hooks Guide](docs/hooks-guide.md) — how hooks work, how to customize them
 - [Skills Guide](docs/skills-guide.md) — using and writing skills
 - [Agents Guide](docs/agents-guide.md) — sub-agents and persistent memory

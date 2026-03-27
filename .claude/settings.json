@@ -1,29 +1,50 @@
 {
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
   "hooks": {
     "SessionStart": [
       {
-        "type": "shell",
-        "command": "bash .claude/hooks/session-start.sh"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/session-start.sh"
+          }
+        ]
       }
     ],
     "PreToolUse": [
       {
-        "type": "shell",
-        "command": "bash .claude/hooks/pre-tool-use.sh",
-        "tools": ["Bash"]
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-tool-use.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [
       {
-        "type": "shell",
-        "command": "bash .claude/hooks/post-tool-use.sh",
-        "tools": ["Edit", "Write"]
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/post-tool-use.sh"
+          }
+        ]
       }
     ],
     "Stop": [
       {
-        "type": "shell",
-        "command": "bash .claude/hooks/stop.sh"
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/stop.sh"
+          }
+        ]
       }
     ]
   },

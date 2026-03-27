@@ -5,9 +5,16 @@
 
 ## Project Identity
 
-ClaudeMaxPower is an open-source GitHub template demonstrating advanced Claude Code workflows.
-The goal is to show how Claude can be used as a **production-grade AI coding assistant** — not just
-a chat tool. Every technique here is documented, tested, and ready to adapt.
+ClaudeMaxPower is an open-source GitHub template that turns Claude Code into a **coordinated AI
+engineering team**. It works in two modes:
+
+1. **New Project Supercharge** — Install ClaudeMaxPower and it assembles an agent team
+   (Architect + Implementer + Tester + Reviewer + Doc Writer) from day one.
+2. **Existing Project Acceleration** — Add ClaudeMaxPower to a project in progress and it
+   assembles a team tailored to your pending work (Analyst + parallel Implementers + Reviewer).
+
+Every technique — hooks, skills, agents, teams, memory consolidation — is documented, tested,
+and ready to adapt.
 
 ## Session Start Protocol
 
@@ -52,6 +59,7 @@ The following skills are defined in `skills/` and can be invoked with `/skill-na
 | tdd-loop | `/tdd-loop` | Autonomous TDD loop until green |
 | pre-commit | `/pre-commit` | Intelligent pre-commit checks |
 | generate-docs | `/generate-docs` | Auto-generate docs from code |
+| assemble-team | `/assemble-team` | Assemble an agent team for your project |
 
 ## Agents Available
 
@@ -59,10 +67,19 @@ Specialized agents are defined in `.claude/agents/`:
 - `code-reviewer` — strict code review with project memory
 - `security-auditor` — OWASP-based vulnerability scanning
 - `doc-writer` — documentation generation with user memory
+- `team-coordinator` — orchestrates agent teams with task dependencies
+
+## Auto Dream (Memory Consolidation)
+
+ClaudeMaxPower includes Auto Dream — a background process that consolidates memory files.
+It runs automatically via the session-start hook when 24+ hours and 5+ sessions have passed
+since the last consolidation. See `docs/auto-dream-guide.md` for details.
 
 ## Documentation References
 
 - @docs/hooks-guide.md
 - @docs/skills-guide.md
 - @docs/agents-guide.md
+- @docs/agent-teams-guide.md
+- @docs/auto-dream-guide.md
 - @docs/batch-workflows.md
