@@ -19,16 +19,59 @@ echo "  ClaudeMaxPower — Setup"
 echo "============================================"
 echo ""
 
+# On Git Bash / MSYS / Cygwin, the bash inherits a limited PATH from cmd.exe
+# that often omits user-level and Program Files tool installs. Augment PATH
+# with the common Windows install locations so command -v can find .exe tools.
+case "$(uname -s 2>/dev/null || echo unknown)" in
+  MINGW*|MSYS*|CYGWIN*)
+    WIN_USER="${USERNAME:-${USER:-}}"
+    EXTRA_PATHS=(
+      "/c/Program Files/GitHub CLI"
+      "/c/Program Files (x86)/GitHub CLI"
+      "/c/Program Files/jq"
+      "/usr/local/bin"
+      "/mingw64/bin"
+    )
+    if [ -n "$WIN_USER" ]; then
+      EXTRA_PATHS+=(
+        "/c/Users/$WIN_USER/.local/bin"
+        "/c/Users/$WIN_USER/AppData/Local/Programs/claude/bin"
+        "/c/Users/$WIN_USER/AppData/Local/Microsoft/WinGet/Links"
+      )
+    fi
+    for p in "${EXTRA_PATHS[@]}"; do
+      [ -d "$p" ] && PATH="$PATH:$p"
+    done
+    export PATH
+    ;;
+esac
+
 # 1. Check required tools
 echo "Checking required tools..."
 
 MISSING=0
 
+# On Windows, many CLIs are shipped as .exe. Try both the bare name and the
+# .exe variant before giving up.
+find_tool() {
+  local tool=$1
+  if command -v "$tool" &>/dev/null; then
+    command -v "$tool"
+    return 0
+  fi
+  if command -v "$tool.exe" &>/dev/null; then
+    command -v "$tool.exe"
+    return 0
+  fi
+  return 1
+}
+
 check_tool() {
   local tool=$1
   local install_hint=$2
-  if command -v "$tool" &>/dev/null; then
-    ok "$tool found ($(command -v "$tool"))"
+  local found
+  if found=$(find_tool "$tool"); then
+    ok "$tool found ($found)"
   else
     err "$tool not found. $install_hint"
     MISSING=$((MISSING + 1))
@@ -80,7 +123,8 @@ fi
 # 6. Check gh auth
 echo ""
 echo "Checking GitHub CLI authentication..."
-if gh auth status &>/dev/null; then
+GH_BIN="$(find_tool gh || true)"
+if [ -n "$GH_BIN" ] && "$GH_BIN" auth status &>/dev/null; then
   ok "GitHub CLI is authenticated."
 else
   warn "GitHub CLI is not authenticated. Run: gh auth login"
