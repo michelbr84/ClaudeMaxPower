@@ -112,6 +112,19 @@ chmod +x workflows/*.sh
 chmod +x scripts/*.sh
 ok "Workflow scripts are executable."
 
+# 4b. Generate Claude Code slash-command wrappers from skills/*.md
+# Claude Code auto-discovers slash commands from .claude/commands/<name>.md.
+# The wrappers delegate to the canonical skill files in skills/.
+if [ -f "scripts/generate-commands.py" ] && [ -d "skills" ]; then
+  echo ""
+  echo "Generating Claude Code slash-command wrappers..."
+  if python3 scripts/generate-commands.py >/dev/null; then
+    ok "Slash commands generated in .claude/commands/ (restart Claude Code to pick them up)."
+  else
+    warn "Failed to generate slash-command wrappers. Run: python3 scripts/generate-commands.py"
+  fi
+fi
+
 # 5. Install Python dependencies for the todo-app example into a local venv.
 # Using a venv avoids PEP 668 "externally-managed-environment" errors on
 # Debian/Ubuntu/WSL and keeps example deps isolated from the system Python.
