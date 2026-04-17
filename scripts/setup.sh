@@ -112,12 +112,50 @@ chmod +x workflows/*.sh
 chmod +x scripts/*.sh
 ok "Workflow scripts are executable."
 
-# 5. Install Python dependencies for examples
+# 5. Install Python dependencies for the todo-app example into a local venv.
+# Using a venv avoids PEP 668 "externally-managed-environment" errors on
+# Debian/Ubuntu/WSL and keeps example deps isolated from the system Python.
 if [ -f "examples/todo-app/requirements.txt" ]; then
   echo ""
   echo "Installing Python dependencies for todo-app example..."
-  python3 -m pip install -r examples/todo-app/requirements.txt -q
-  ok "Python dependencies installed."
+  VENV_DIR="examples/todo-app/.venv"
+  VENV_STAMP="$VENV_DIR/.requirements.sha256"
+  REQ_FILE="examples/todo-app/requirements.txt"
+
+  if [ ! -d "$VENV_DIR" ]; then
+    if ! python3 -m venv "$VENV_DIR" 2>/tmp/cmp-venv-err; then
+      warn "python3 -m venv failed: $(cat /tmp/cmp-venv-err 2>/dev/null | head -1)"
+      warn "On Debian/Ubuntu/WSL run:  sudo apt install -y python3-venv python3-full"
+      warn "Skipping example dependencies — re-run scripts/setup.sh after installing."
+      VENV_DIR=""
+    fi
+    rm -f /tmp/cmp-venv-err
+  fi
+
+  if [ -n "$VENV_DIR" ]; then
+    # Handle both Unix (bin/python) and Windows (Scripts/python.exe) venv layouts.
+    if   [ -x "$VENV_DIR/bin/python" ];         then VENV_PY="$VENV_DIR/bin/python"
+    elif [ -x "$VENV_DIR/Scripts/python.exe" ]; then VENV_PY="$VENV_DIR/Scripts/python.exe"
+    else VENV_PY=""
+    fi
+
+    if [ -z "$VENV_PY" ]; then
+      warn "Could not locate python inside $VENV_DIR. Skipping dependency install."
+    else
+      # Skip reinstall when requirements haven't changed (idempotent).
+      REQ_HASH="$(sha256sum "$REQ_FILE" | awk '{print $1}')"
+      if [ -f "$VENV_STAMP" ] && [ "$(cat "$VENV_STAMP" 2>/dev/null)" = "$REQ_HASH" ]; then
+        ok "Python dependencies already up to date in $VENV_DIR"
+      elif "$VENV_PY" -m pip install -r "$REQ_FILE" -q --disable-pip-version-check; then
+        echo "$REQ_HASH" > "$VENV_STAMP"
+        ok "Python dependencies installed in $VENV_DIR"
+        echo "  Activate with:  source $VENV_DIR/bin/activate"
+        echo "     (Windows:     source $VENV_DIR/Scripts/activate)"
+      else
+        warn "pip install failed. Try manually: $VENV_PY -m pip install -r $REQ_FILE"
+      fi
+    fi
+  fi
 fi
 
 # 6. Check gh auth
