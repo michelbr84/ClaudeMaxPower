@@ -1,15 +1,18 @@
 # ClaudeMaxPower
 
-**Turn Claude Code into a coordinated AI engineering team.**
+**Turn Claude Code into a coordinated AI engineering team — with the full Superpowers methodology built in.**
 
 ClaudeMaxPower is a GitHub template that transforms Claude from a solo assistant into a full
-agent team — with hooks, skills, persistent memory, and Auto Dream memory consolidation.
+AI engineering team — with hooks, skills, persistent memory, Auto Dream memory consolidation,
+and an integrated adaptation of the obra/superpowers methodology (brainstorm → spec → plan →
+subagent-driven development with strict TDD → two-stage review → finish).
+
 It works in two modes:
 
-- **New Project:** Install ClaudeMaxPower and it assembles a team (Architect + Implementer + Tester + Reviewer + Doc Writer) from day one
-- **Existing Project:** Add ClaudeMaxPower and it creates a team tailored to your pending work, accelerating completion
+- **New Project:** Install ClaudeMaxPower, brainstorm a feature, assemble a team, and ship
+- **Existing Project:** Add ClaudeMaxPower and it creates a team tailored to your pending work
 
-Clone it, run `/assemble-team`, and watch Claude coordinate a team of specialized agents.
+Clone it, run `/max-power`, and watch Claude operate at maximum capability.
 
 ---
 
@@ -29,9 +32,20 @@ nano .env
 # 4. Open Claude Code in this directory
 claude
 
-# 5. Try your first skill
+# 5. Activate maximum capability
+/max-power
+
+# Or jump straight to your goal:
+/brainstorming --topic "new feature"
 /fix-issue --issue 1 --repo michelbr84/ClaudeMaxPower
+/assemble-team --mode new-project --description "REST API for task management"
 ```
+
+### Already in a Claude session? Use the bootstrap prompt
+
+Copy the prompt from [`docs/bootstrap-prompt.md`](docs/bootstrap-prompt.md) into any Claude
+Code (or Cursor, Codex, Gemini) session — it will clone ClaudeMaxPower, install the
+optional Superpowers plugin, run setup, and present the pipeline menu.
 
 ---
 
@@ -58,11 +72,15 @@ ClaudeMaxPower/
 
 | Feature | What It Does |
 |---------|-------------|
+| **Superpowers Pipeline** | Brainstorm → spec → plan → subagent-driven dev → two-stage review → finish |
+| **One-Command Bootstrap** | `/max-power` installs, configures, and routes you to the right skill |
 | **Agent Teams** | Assemble coordinated teams of specialized agents with `/assemble-team` |
 | **Auto Dream** | Background memory consolidation — prunes stale entries, rebuilds index |
 | **Layered CLAUDE.md** | Project-wide + subfolder-specific Claude instructions with `@imports` |
 | **Hooks** | Auto-run tests after edits, block dangerous commands, save session state |
-| **Skills** | Reusable `/fix-issue`, `/tdd-loop`, `/review-pr`, `/assemble-team`, and more |
+| **Strict TDD** | Iron-law TDD (`/tdd-loop`) plus lite option (`/tdd-loop-lite`) for flexibility |
+| **Systematic Debugging** | 4-phase root-cause process — never patch a symptom |
+| **Git Worktree Isolation** | Safe parallel development with `/using-worktrees` and `/finish-branch` |
 | **Sub-Agents** | Specialized agents (code reviewer, security auditor, doc writer, team coordinator) |
 | **Batch Workflows** | Fix multiple issues, mass-refactor, Writer/Reviewer pattern with worktrees |
 | **MCP Integrations** | Claude reads GitHub issues and Sentry errors directly |
@@ -97,18 +115,51 @@ ClaudeMaxPower/
 
 ---
 
+## Superpowers Integration
+
+ClaudeMaxPower integrates the [obra/superpowers](https://github.com/obra/superpowers) (MIT)
+methodology directly as inlined skills. You get the full pipeline without a submodule or
+plugin dependency. See [`docs/superpowers-integration.md`](docs/superpowers-integration.md)
+for the merged pipeline, decision tables, and migration notes.
+
+**Four Iron Laws** enforced by the skills:
+
+1. No production code without a failing test first (`/tdd-loop`)
+2. No implementation without an approved spec (`/brainstorming` hard gate)
+3. No fixes without root-cause investigation (`/systematic-debugging`)
+4. No merging with failing tests (`/finish-branch` verification)
+
+Attribution: see [`ATTRIBUTION.md`](ATTRIBUTION.md).
+
+---
+
 ## Skills Reference
 
 Invoke any skill with `/skill-name [arguments]` inside Claude Code.
 
+**Pipeline skills (Superpowers methodology):**
+
 | Skill | Command | Description |
 |-------|---------|-------------|
-| **Assemble Team** | `/assemble-team --mode new-project --description "..."` | Assemble an agent team tailored to your project |
-| Fix Issue | `/fix-issue --issue 1 --repo owner/repo` | Read GitHub issue → write failing test → fix bug → open PR |
-| Review PR | `/review-pr --pr 42 --repo owner/repo` | Full structured review → post comment via gh |
-| Refactor Module | `/refactor-module --file src/foo.py --goal "extract validation"` | Safe refactor with test baseline |
-| TDD Loop | `/tdd-loop --spec "add search feature" --file src/foo.py` | Write tests first, iterate until green |
-| Pre-Commit | `/pre-commit` | Scan staged files for secrets, debug code, style issues |
+| Brainstorming | `/brainstorming --topic "user-auth"` | Collaborative design → spec (hard gate) |
+| Writing Plans | `/writing-plans --spec docs/specs/...md` | Break spec into bite-sized tasks |
+| Subagent Dev | `/subagent-dev --plan docs/plans/...md` | Fresh subagent per task + two-stage review |
+| Systematic Debugging | `/systematic-debugging --issue "..."` | 4-phase root-cause process |
+| Finish Branch | `/finish-branch` | Merge / PR / keep / discard + worktree cleanup |
+| Using Worktrees | `/using-worktrees --branch feat/xxx` | Safe isolated git worktree |
+| TDD Loop | `/tdd-loop --spec "..." --file path` | Strict Red-Green-Refactor with iron law |
+| TDD Loop (Lite) | `/tdd-loop-lite --spec "..." --file path` | Simpler TDD loop (pre-integration version) |
+
+**ClaudeMaxPower native skills:**
+
+| Skill | Command | Description |
+|-------|---------|-------------|
+| **Max Power** | `/max-power` | One-command activation — installs, configures, routes |
+| **Assemble Team** | `/assemble-team --mode new-project --description "..."` | Assemble an agent team (brainstorming gate enforced) |
+| Fix Issue | `/fix-issue --issue 1 --repo owner/repo` | Read issue → failing test → fix → PR |
+| Review PR | `/review-pr --pr 42 --repo owner/repo` | Structured review → post comment via gh |
+| Refactor Module | `/refactor-module --file src/foo.py --goal "..."` | Safe refactor with test baseline |
+| Pre-Commit | `/pre-commit` | Scan staged files for secrets, debug code, style |
 | Generate Docs | `/generate-docs --dir src/` | Auto-generate API docs from source |
 
 ---
@@ -160,6 +211,8 @@ Agents are invoked by Claude as sub-sessions with specialized roles.
 ## Documentation
 
 - [Getting Started](docs/getting-started.md) — prerequisites, setup, first run
+- **[Superpowers Integration](docs/superpowers-integration.md)** — merged pipeline, decision tables
+- **[Bootstrap Prompt](docs/bootstrap-prompt.md)** — copy-paste activation for any Claude session
 - [Agent Teams Guide](docs/agent-teams-guide.md) — assembling and coordinating agent teams
 - [Auto Dream Guide](docs/auto-dream-guide.md) — memory consolidation system
 - [Hooks Guide](docs/hooks-guide.md) — how hooks work, how to customize them
@@ -170,6 +223,7 @@ Agents are invoked by Claude as sub-sessions with specialized roles.
 - [Parallel Workflows](docs/worktrees-parallel.md) — Writer/Reviewer with worktrees
 - [Troubleshooting](docs/troubleshooting.md) — common issues and fixes
 - [14 Advanced Techniques](docs/techniques.md) — the techniques that inspired this project
+- [ATTRIBUTION](ATTRIBUTION.md) — MIT credits for adapted content
 
 ---
 

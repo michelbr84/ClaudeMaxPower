@@ -68,10 +68,36 @@ You should see the session-start hook fire, showing your git context and availab
 
 ## First Steps
 
-### Try a skill
+### Activate maximum capability
 
 ```bash
 # Inside Claude Code:
+/max-power
+```
+
+This detects your environment, runs setup, offers to install the optional Superpowers plugin,
+and routes you to the right skill for your goal. It's the recommended first command for every
+new project.
+
+### Try the pipeline on a feature
+
+```bash
+# 1. Brainstorm the design (hard gate: produces an approved spec)
+/brainstorming --topic "task search"
+
+# 2. Break the spec into bite-sized tasks
+/writing-plans --spec docs/specs/2026-04-17-task-search-design.md
+
+# 3. Execute with fresh subagents + two-stage review
+/subagent-dev --plan docs/plans/2026-04-17-task-search-plan.md
+
+# 4. Finish: merge, PR, or keep
+/finish-branch
+```
+
+### Or try a single-purpose skill
+
+```bash
 /pre-commit
 ```
 
@@ -98,6 +124,8 @@ ls workflows/             # Batch scripts
 
 ## What to Read Next
 
+- [Superpowers Integration](superpowers-integration.md) — the merged pipeline and decision tables
+- [Bootstrap Prompt](bootstrap-prompt.md) — copy-paste activator for any Claude session
 - [Hooks Guide](hooks-guide.md) — understand what fires automatically
 - [Skills Guide](skills-guide.md) — learn to use and write skills
 - [Agents Guide](agents-guide.md) — specialized sub-agents

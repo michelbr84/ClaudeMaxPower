@@ -51,14 +51,28 @@
   "permissions": {
     "allow": [
       "Bash(git:*)",
+      "Bash(git worktree:*)",
+      "Bash(git check-ignore:*)",
       "Bash(python3:*)",
       "Bash(pytest:*)",
       "Bash(gh:*)",
       "Bash(jq:*)",
-      "Bash(shellcheck:*)"
+      "Bash(shellcheck:*)",
+      "Bash(npm:*)",
+      "Bash(pnpm:*)",
+      "Bash(yarn:*)",
+      "Bash(cargo:*)",
+      "Bash(go:*)",
+      "Bash(rsync:*)",
+      "Bash(claude:*)"
     ],
     "deny": [
-      "Bash(rm -rf /*)"
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(git push --force origin main*)",
+      "Bash(git push --force origin master*)",
+      "Bash(git push -f origin main*)",
+      "Bash(git push -f origin master*)"
     ]
   }
 }

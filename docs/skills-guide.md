@@ -41,6 +41,39 @@ The `allowed-tools` list restricts which Claude tools the skill can use — a se
 
 ## Available Skills
 
+ClaudeMaxPower ships two families of skills:
+
+**Pipeline skills** (adapted from [obra/superpowers](https://github.com/obra/superpowers), MIT)
+form the brainstorm → spec → plan → execute → finish pipeline. Read each skill file for
+full details; the summaries in [superpowers-integration.md](superpowers-integration.md) cover
+when to use which one:
+
+- `/brainstorming` — collaborative design refinement, produces an approved spec (hard gate)
+- `/writing-plans` — breaks the spec into bite-sized tasks (2-5 min each)
+- `/subagent-dev` — dispatches a fresh subagent per task with two-stage review
+- `/systematic-debugging` — 4-phase root-cause debugging
+- `/using-worktrees` — creates an isolated git worktree with safety checks
+- `/finish-branch` — merge / PR / keep / discard + worktree cleanup
+- `/tdd-loop` — strict Red-Green-Refactor with iron-law enforcement
+- `/tdd-loop-lite` — the simpler TDD loop kept for flexibility
+
+**Native skills** are documented in detail below.
+
+### /max-power
+
+One-command activation. Detects environment, runs setup, offers Superpowers plugin install,
+presents the pipeline menu, and routes you to the right entry point for your goal.
+
+```bash
+/max-power
+/max-power --goal "fix the login bug"
+/max-power --mode new-project
+```
+
+**Workflow:** Detect env → Install ClaudeMaxPower if missing → Offer Superpowers plugin → Run setup → Read project context → Route to skill
+
+---
+
 ### /fix-issue
 
 Fix a GitHub issue end-to-end using TDD.

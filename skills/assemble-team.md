@@ -1,6 +1,6 @@
 ---
 name: assemble-team
-description: Analyze a project and assemble an optimal agent team tailored to the user's goals
+description: Analyze a project and assemble an optimal agent team — enforces brainstorming/spec gate before implementation for new-project mode.
 arguments:
   - name: mode
     description: "new-project or existing-project"
@@ -30,6 +30,37 @@ Assemble an agent team optimized for the user's project and goals. This is Claud
 core superpower — it turns Claude from a solo assistant into a coordinated engineering team.
 
 ## Workflow
+
+### Step 0: Brainstorming gate (spec check)
+
+**No implementation until spec is approved — this is the same hard gate enforced by `/brainstorming`.**
+
+Before analyzing the project or composing any team, verify that the work has been scoped.
+
+**For `new-project` mode:** a design spec MUST exist under `docs/specs/`. If none exists, stop and instruct the user to run `/brainstorming --topic <feature>` first. This is a hard gate — do not proceed, do not spawn agents, do not plan tasks.
+
+```bash
+ls docs/specs/*-design.md 2>/dev/null
+```
+
+- If the command returns one or more files, read the most recent design spec and use it as the source of truth for Step 2 onwards.
+- If the command returns nothing, respond to the user with:
+
+  > No design spec found in `docs/specs/`. Run `/brainstorming --topic <feature>` first to produce an approved spec, then re-run `/assemble-team`.
+
+  Then stop. Do not continue to Step 1.
+
+**For `existing-project` mode:** check for pending specs and evaluate goal concreteness.
+
+```bash
+ls docs/specs/*-design.md 2>/dev/null
+```
+
+- If `--goals` is vague (e.g. "improve the app", "make it better", "modernize", "clean up"), suggest running `/brainstorming` first to sharpen intent into concrete tasks, and stop unless the user explicitly confirms they want to proceed with exploratory analysis.
+- If `--goals` is concrete — references GitHub issues (`#10 #11 #12`), specific file TODOs, named features, or points to an existing spec in `docs/specs/` — proceed to Step 1.
+- If specs exist in `docs/specs/`, read them and use them alongside `--goals` when designing the team.
+
+State clearly in the chat: "No implementation until spec is approved — this is the same hard gate enforced by /brainstorming."
 
 ### Step 1: Determine mode and validate inputs
 
@@ -118,6 +149,8 @@ Agent(
 
 For the second wave, spawn all agents in a single message (parallel execution).
 
+**Execution strategy option:** For teams where tasks are mostly independent, consider using `/subagent-dev` as the execution backbone instead of spawning all teammates upfront. This gives you fresh-context subagents per task with two-stage review (spec compliance then code quality). Use `/writing-plans` to produce the plan file, then `/subagent-dev --plan <file>`.
+
 ### Step 6: Coordinate and synthesize
 
 As teammates complete:
@@ -173,3 +206,10 @@ Output a structured summary:
 ```
 /assemble-team --mode existing-project --goals "Complete all TODO and FIXME items in src/"
 ```
+
+## Related skills
+
+- `/brainstorming` — Step 0 gate. Produces the approved design spec in `docs/specs/` that this skill consumes. Required for `new-project` mode; recommended when `existing-project` goals are vague.
+- `/writing-plans` — Turns an approved spec into a concrete task breakdown plan file. Pair with `/subagent-dev` for the alternate execution path.
+- `/subagent-dev` — Alternate execution backbone. Runs tasks through fresh-context subagents with two-stage review. Preferred when tasks are largely independent.
+- `/finish-branch` — Post-completion workflow. Once the team has finished and all checks pass, use this to merge, open a PR, or clean up the development branch.
