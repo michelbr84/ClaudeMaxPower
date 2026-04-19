@@ -49,6 +49,42 @@ optional Superpowers plugin, run setup, and present the pipeline menu.
 
 ---
 
+## Post-clone setup (manual, one-time)
+
+A few things live in GitHub repository settings rather than in the codebase, so `git clone`
+cannot copy them. Do these once per repo right after cloning the template:
+
+### 1. Import the branch protection ruleset
+
+The repo ships with a ready-made ruleset at
+[`.github/rulesets/main.json`](.github/rulesets/main.json) that:
+
+- Requires all 7 CI jobs to pass before merging to `main`
+- Blocks direct pushes, force-pushes, branch deletion
+- Requires linear history (squash or rebase merges only)
+- Requires PRs even for the repo owner (so CI always gates merges)
+- Allows the **Admin** role (`actor_id: 5`) to bypass in emergencies — adjust if you want
+  stricter, or delete the `bypass_actors` array entirely
+
+To apply it:
+
+1. Go to **Settings → Rules → Rulesets**
+2. **New ruleset → Import a ruleset**
+3. Select `.github/rulesets/main.json`
+4. Review the populated form and click **Create**
+
+If you ever rename a job in `.github/workflows/ci.yml`, update the matching
+`required_status_checks.context` value in the ruleset and re-import — otherwise the renamed
+job will block every merge as a "waiting" required check.
+
+### 2. (Optional) Repository secrets
+
+Skills like `/fix-issue` and `/review-pr` need a GitHub token at runtime; the
+batch workflows additionally need an `ANTHROPIC_API_KEY`. Local use reads these from `.env`.
+For CI / GitHub Actions runs, add them under **Settings → Secrets and variables → Actions**.
+
+---
+
 ## What's Inside
 
 ```
