@@ -48,15 +48,27 @@ Claude lists them with titles and descriptions.
 
 ## Sentry Integration  *(optional)*
 
-**Config:** `mcp/sentry-config.json`
-**Requires:** `SENTRY_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
+**Default config:** `mcp/sentry-config.json` — Sentry's official remote MCP server
+at `https://mcp.sentry.dev/mcp`, OAuth-authenticated.
+**Requires (default path):** nothing in `.env`. OAuth happens on first `/mcp` call.
 
-> **`SENTRY_TOKEN` is a Sentry auth token, not a DSN.** A DSN is a write credential
-> used by SDKs that *send* errors to Sentry. This integration is read-only: Claude
-> queries your Sentry project's events through the management API. If you paste a DSN
-> into `SENTRY_TOKEN`, the MCP server will fail to authenticate. Create an auth token
-> at [sentry.io/settings/account/api/auth-tokens/](https://sentry.io/settings/account/api/auth-tokens/)
-> with scopes `project:read`, `event:read`, `org:read`.
+Add it with one command:
+
+```bash
+claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
+```
+
+Then restart Claude Code, run `/mcp`, click the OAuth link, authorize.
+
+> **The default path is for hosted Sentry only** (`sentry.io`). If you run a
+> self-hosted Sentry, see [`mcp/README.md`](../mcp/README.md#sentry-mcp--self-hosted-advanced-optional)
+> for the stdio-based alternative using `@sentry/mcp-server`.
+
+> **Token vs DSN — read this if you've used Sentry SDKs before.** A DSN is a *write*
+> credential used by SDKs that *send* errors to Sentry. The MCP integration is
+> *read-only*: Claude queries your project's events. The default remote path uses
+> OAuth, so neither a DSN nor a token is required. The self-hosted path uses a
+> Sentry *user auth token* (`SENTRY_ACCESS_TOKEN`), which is also not a DSN.
 
 ### What Claude can do with Sentry MCP
 

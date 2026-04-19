@@ -131,11 +131,27 @@ cat .claude/settings.json | jq '.mcpServers'
 npx -y @modelcontextprotocol/server-github --help 2>&1 | head -5
 ```
 
-**Check 3: Token is valid**
+**Check 3: GitHub token is valid**
 ```bash
 source .env
 curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
 ```
+
+**Check 4: Sentry remote MCP — re-run OAuth**
+
+The Sentry default integration uses OAuth, not a token. If `/mcp` shows `sentry`
+as failed or never authenticated, re-run the auth flow:
+```
+/mcp
+```
+Click the auth link next to `sentry`. If the link doesn't appear, try removing
+and re-adding the server:
+```bash
+claude mcp remove sentry
+claude mcp add --transport http sentry https://mcp.sentry.dev/mcp
+```
+You can revoke previously-granted access at
+[sentry.io/settings/account/api/authorized-applications/](https://sentry.io/settings/account/api/authorized-applications/).
 
 ---
 

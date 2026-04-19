@@ -47,7 +47,7 @@ done
 section "Environment"
 if [ -f ".env" ]; then
   ok ".env file exists"
-  if grep -q "your_token_here\|your_sentry_auth_token\|your-org-slug" .env; then
+  if grep -q "your_token_here\|your-username/your-repo" .env; then
     warn ".env has unfilled placeholder values — update before using integrations"
   else
     ok ".env appears to be configured"

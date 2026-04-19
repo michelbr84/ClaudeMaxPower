@@ -46,7 +46,7 @@ echo ""
 if [ -f ".env" ]; then
   echo -e "${GREEN}.env file found.${NC}"
   # Check for unfilled placeholders
-  if grep -q "your_token_here\|your_sentry_auth_token\|your-org-slug\|your-username" .env 2>/dev/null; then
+  if grep -q "your_token_here\|your-username/your-repo" .env 2>/dev/null; then
     echo -e "${YELLOW}Warning: .env has unfilled placeholder values. Update before using integrations.${NC}"
   fi
 else
