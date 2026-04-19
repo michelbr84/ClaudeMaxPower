@@ -137,7 +137,7 @@ if [ -f "examples/todo-app/requirements.txt" ]; then
 
   if [ ! -d "$VENV_DIR" ]; then
     if ! python3 -m venv "$VENV_DIR" 2>/tmp/cmp-venv-err; then
-      warn "python3 -m venv failed: $(cat /tmp/cmp-venv-err 2>/dev/null | head -1)"
+      warn "python3 -m venv failed: $(head -1 /tmp/cmp-venv-err 2>/dev/null)"
       warn "On Debian/Ubuntu/WSL run:  sudo apt install -y python3-venv python3-full"
       warn "Skipping example dependencies — re-run scripts/setup.sh after installing."
       VENV_DIR=""

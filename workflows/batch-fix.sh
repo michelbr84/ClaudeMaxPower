@@ -13,12 +13,16 @@ set -euo pipefail
 
 GREEN='\033[0;32m'
 RED='\033[0;31m'
-YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Load env
-[ -f .env ] && export $(grep -v '^#' .env | xargs 2>/dev/null) || true
+if [ -f .env ]; then
+  set -a
+  # shellcheck source=/dev/null
+  . ./.env
+  set +a
+fi
 
 REPO="${1:-}"
 shift || true

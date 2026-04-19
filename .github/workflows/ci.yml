@@ -11,10 +11,15 @@ jobs:
     name: Validate Shell Scripts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Install shellcheck
-        run: sudo apt-get install -y shellcheck
+      - name: Install shellcheck v0.10.0
+        run: |
+          curl -fsSL https://github.com/koalaman/shellcheck/releases/download/v0.10.0/shellcheck-v0.10.0.linux.x86_64.tar.xz \
+            | tar -xJ
+          sudo mv shellcheck-v0.10.0/shellcheck /usr/local/bin/shellcheck
+          rm -rf shellcheck-v0.10.0
+          shellcheck --version
 
       - name: Lint hook scripts
         run: shellcheck .claude/hooks/*.sh
@@ -25,11 +30,25 @@ jobs:
       - name: Lint setup scripts
         run: shellcheck scripts/*.sh
 
+  validate-actions:
+    name: Validate GitHub Actions Workflows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install actionlint v1.7.7
+        run: |
+          bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/v1.7.7/scripts/download-actionlint.bash) 1.7.7
+          ./actionlint -version
+
+      - name: Lint workflow YAML
+        run: ./actionlint -color
+
   validate-json:
     name: Validate JSON Files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Validate settings.json
         run: jq empty .claude/settings.json
@@ -43,7 +62,7 @@ jobs:
     name: Check for Secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Ensure .env.example has no real secrets
         run: |
@@ -68,7 +87,7 @@ jobs:
     name: Lint Markdown
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install markdownlint
         run: npm install -g markdownlint-cli
@@ -89,7 +108,7 @@ jobs:
     name: Run Example Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -114,7 +133,7 @@ jobs:
     name: Verify Project Structure
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Check required files exist
         run: |
