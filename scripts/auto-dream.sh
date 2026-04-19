@@ -29,6 +29,7 @@ log_ok()    { echo -e "${GREEN}[AutoDream]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[AutoDream]${NC} $1"; }
 log_error() { echo -e "${RED}[AutoDream]${NC} $1"; }
 
+# shellcheck disable=SC2317  # invoked indirectly via `trap cleanup EXIT` below
 cleanup() {
     rm -f "$LOCK_FILE" 2>/dev/null || true
 }
@@ -72,8 +73,8 @@ echo $$ > "$LOCK_FILE"
 now_epoch=$(date +%s)
 
 if [ -f "$STATE_FILE" ]; then
-    last_dream_epoch=$(cat "$STATE_FILE" | grep -o '"last_dream_epoch":[0-9]*' | grep -o '[0-9]*' || echo "0")
-    sessions_since=$(cat "$STATE_FILE" | grep -o '"sessions_since":[0-9]*' | grep -o '[0-9]*' || echo "0")
+    last_dream_epoch=$(grep -o '"last_dream_epoch":[0-9]*' "$STATE_FILE" | grep -o '[0-9]*' || echo "0")
+    sessions_since=$(grep -o '"sessions_since":[0-9]*' "$STATE_FILE" | grep -o '[0-9]*' || echo "0")
 else
     last_dream_epoch=0
     sessions_since=0
@@ -189,7 +190,7 @@ done
     for type in "user" "feedback" "project" "reference" "uncategorized"; do
         if [ -n "${type_files[$type]:-}" ]; then
             # Capitalize first letter
-            header=$(echo "$type" | sed 's/^./\U&/')
+            header="${type^}"
             echo "## ${header}"
             echo -e "${type_files[$type]}"
         fi

@@ -17,7 +17,12 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-[ -f .env ] && export $(grep -v '^#' .env | xargs 2>/dev/null) || true
+if [ -f .env ]; then
+  set -a
+  # shellcheck source=/dev/null
+  . ./.env
+  set +a
+fi
 
 PATTERN=""
 GOAL=""
@@ -60,7 +65,7 @@ fi
 
 FILE_COUNT=$(echo "$MATCHING_FILES" | wc -l)
 echo -e "${GREEN}Found $FILE_COUNT file(s):${NC}"
-echo "$MATCHING_FILES" | sed 's/^/  /'
+echo "  ${MATCHING_FILES//$'\n'/$'\n  '}"
 echo ""
 
 # Safety check for large refactors
