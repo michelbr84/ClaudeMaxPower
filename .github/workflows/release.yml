@@ -19,7 +19,7 @@ jobs:
 
       - name: Get tag version
         id: tag
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
 
       - name: Run CI checks
         run: |
@@ -46,9 +46,11 @@ jobs:
             CHANGES=$(git log --oneline --pretty=format:"- %s (%h)" | head -20)
           fi
 
-          echo "changes<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "changes<<EOF"
+            echo "$CHANGES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Create release archive
         run: |
