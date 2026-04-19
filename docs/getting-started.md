@@ -48,10 +48,12 @@ Required for full functionality:
 - `DEFAULT_REPO` — your default repository in `owner/repo` format
 
 Optional:
-- `SENTRY_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` — for the Sentry MCP integration
-  (Claude reads your Sentry errors during a session). `SENTRY_TOKEN` is a Sentry
-  *auth token*, not a DSN. See [`mcp/README.md`](../mcp/README.md#step-1-configure-your-secrets)
-  for token-creation steps and required scopes.
+- The Sentry MCP integration (Claude reads your Sentry errors during a session)
+  uses the official remote OAuth endpoint by default and needs **no env vars** —
+  authentication is handled by Claude Code on first `/mcp` call. If you run
+  self-hosted Sentry, see [`mcp/README.md`](../mcp/README.md#sentry-mcp--self-hosted-advanced-optional)
+  for the stdio-based alternative and the env vars it needs
+  (`SENTRY_ACCESS_TOKEN`, `SENTRY_HOST`).
 
 ### 4. Verify everything is working
 
