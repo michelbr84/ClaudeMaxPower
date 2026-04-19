@@ -48,7 +48,10 @@ Required for full functionality:
 - `DEFAULT_REPO` — your default repository in `owner/repo` format
 
 Optional:
-- `SENTRY_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` — for Sentry MCP integration
+- `SENTRY_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` — for the Sentry MCP integration
+  (Claude reads your Sentry errors during a session). `SENTRY_TOKEN` is a Sentry
+  *auth token*, not a DSN. See [`mcp/README.md`](../mcp/README.md#step-1-configure-your-secrets)
+  for token-creation steps and required scopes.
 
 ### 4. Verify everything is working
 
