@@ -46,10 +46,17 @@ What open issues are labeled "bug" in this repo?
 ```
 Claude lists them with titles and descriptions.
 
-## Sentry Integration
+## Sentry Integration  *(optional)*
 
 **Config:** `mcp/sentry-config.json`
 **Requires:** `SENTRY_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`
+
+> **`SENTRY_TOKEN` is a Sentry auth token, not a DSN.** A DSN is a write credential
+> used by SDKs that *send* errors to Sentry. This integration is read-only: Claude
+> queries your Sentry project's events through the management API. If you paste a DSN
+> into `SENTRY_TOKEN`, the MCP server will fail to authenticate. Create an auth token
+> at [sentry.io/settings/account/api/auth-tokens/](https://sentry.io/settings/account/api/auth-tokens/)
+> with scopes `project:read`, `event:read`, `org:read`.
 
 ### What Claude can do with Sentry MCP
 
