@@ -85,6 +85,27 @@ For CI / GitHub Actions runs, add them under **Settings → Secrets and variable
 
 ---
 
+## Local verification
+
+Two scripts, distinct jobs:
+
+| Script | Purpose | When to run |
+|--------|---------|-------------|
+| `scripts/verify.sh` | Checks your local **environment** — tools installed, `.env` populated, hooks executable, GitHub CLI auth | Right after `bash scripts/setup.sh`, or whenever a session feels broken |
+| `scripts/verify-ci.sh` | Runs the same **lint and structure checks CI runs**, with the same pinned tool versions (`shellcheck v0.10.0`, `actionlint v1.7.7`) | Before every push — green here means green in CI |
+
+```bash
+# Pre-push: mirror CI locally
+bash scripts/verify-ci.sh
+```
+
+`verify-ci.sh` auto-installs `shellcheck` and `actionlint` on first run into
+`~/.cache/cmp-verify/bin/` (delete that directory to force a fresh download).
+It exits non-zero if any required check fails, so it slots cleanly into
+pre-push hooks or local CI loops.
+
+---
+
 ## What's Inside
 
 ```
