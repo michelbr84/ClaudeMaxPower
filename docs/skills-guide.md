@@ -195,6 +195,16 @@ BRANCH="${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
 - Keep `allowed-tools` minimal — principle of least privilege
 - Test the skill end-to-end before sharing
 
+## Validate Skill Frontmatter
+
+Run `bash scripts/validate-skills.sh` after editing or adding a skill to confirm
+the YAML frontmatter has the required fields and that every entry in
+`allowed-tools` is a recognised Claude Code tool. By default unknown tools are
+warnings; `--strict` (or `CMP_STRICT_TOOLS=1`) escalates them to failures.
+
+The known-tool list lives in `scripts/known-claude-tools.txt` — append to it when
+Claude Code introduces a new tool you want to use.
+
 ## Skill vs Agent vs Workflow
 
 | | Skill | Agent | Workflow Script |

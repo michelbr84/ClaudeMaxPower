@@ -13,6 +13,11 @@ ok()   { echo -e "${GREEN}[OK]${NC} $1"; }
 warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 err()  { echo -e "${RED}[ERROR]${NC} $1"; }
 
+# Portable temp dir — works on Linux, macOS, and Git Bash/MSYS on Windows.
+# The fallback covers macOS BSD mktemp not accepting a custom template via -d.
+CMP_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/cmp.XXXXXX" 2>/dev/null || mktemp -d -t cmp.XXXXXX)"
+trap 'rm -rf "$CMP_TMPDIR"' EXIT
+
 echo ""
 echo "============================================"
 echo "  ClaudeMaxPower — Setup"
@@ -136,13 +141,14 @@ if [ -f "examples/todo-app/requirements.txt" ]; then
   REQ_FILE="examples/todo-app/requirements.txt"
 
   if [ ! -d "$VENV_DIR" ]; then
-    if ! python3 -m venv "$VENV_DIR" 2>/tmp/cmp-venv-err; then
-      warn "python3 -m venv failed: $(head -1 /tmp/cmp-venv-err 2>/dev/null)"
+    VENV_ERR="$CMP_TMPDIR/venv-err"
+    if ! python3 -m venv "$VENV_DIR" 2>"$VENV_ERR"; then
+      warn "python3 -m venv failed: $(head -1 "$VENV_ERR" 2>/dev/null)"
       warn "On Debian/Ubuntu/WSL run:  sudo apt install -y python3-venv python3-full"
       warn "Skipping example dependencies — re-run scripts/setup.sh after installing."
       VENV_DIR=""
     fi
-    rm -f /tmp/cmp-venv-err
+    # $VENV_ERR is cleaned up by the EXIT trap on $CMP_TMPDIR.
   fi
 
   if [ -n "$VENV_DIR" ]; then

@@ -129,6 +129,26 @@ jobs:
           python -m pytest examples/todo-app/tests/ --collect-only -q
           echo "Test collection successful"
 
+  cross-platform-smoke:
+    name: Cross-Platform Smoke (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        # Force bash on every runner (Git Bash on Windows).
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Validate skill and agent frontmatter
+        run: bash scripts/validate-skills.sh
+
+      - name: Self-test hook scripts
+        run: bash scripts/test-hooks.sh
+
   check-structure:
     name: Verify Project Structure
     runs-on: ubuntu-latest

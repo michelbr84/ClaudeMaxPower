@@ -189,9 +189,32 @@ The tests add `src/` to `sys.path` automatically, so you don't need to install t
 
 ---
 
+## `bash scripts/verify.sh` Reports Failing Example Tests
+
+**Symptom:** `verify.sh` lists the `examples/todo-app` pytest output as failing
+("4 failed, 9 passed").
+
+**This is expected.** The example app ships with three intentional bugs that
+demonstrate `/fix-issue`, `/tdd-loop`, and `/pre-commit`. As of the audit-driven
+update, `verify.sh` treats these failures as informational by default and exits 0
+when every *infrastructure* check passes.
+
+**To restore the legacy strict behaviour** (treat the seeded-bug failures as
+hard failures):
+
+```bash
+VERIFY_STRICT_EXAMPLES=1 bash scripts/verify.sh
+```
+
+See `examples/todo-app/README.md` for the full bug list.
+
+---
+
 ## Getting More Help
 
-- Run `bash scripts/verify.sh` — catches most common issues
+- Run `bash scripts/verify.sh` — catches most common issues (informational by default)
+- Run `bash scripts/test-hooks.sh` — self-test the hook scripts in an isolated workspace
+- Run `bash scripts/validate-skills.sh` — schema-check skill and agent frontmatter
 - Check `.claude/audit.log` — every bash command Claude ran
 - Check `.estado.md` — summary of what previous sessions did
 - Open an issue: [github.com/your-username/ClaudeMaxPower/issues](https://github.com/your-username/ClaudeMaxPower/issues)

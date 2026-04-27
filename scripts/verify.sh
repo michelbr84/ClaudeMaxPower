@@ -13,10 +13,12 @@ NC='\033[0m'
 
 ok()      { echo -e "${GREEN}[PASS]${NC} $1"; }
 warn()    { echo -e "${YELLOW}[WARN]${NC} $1"; }
+info()    { echo -e "${YELLOW}[INFO]${NC} $1"; }
 fail()    { echo -e "${RED}[FAIL]${NC} $1"; FAILURES=$((FAILURES + 1)); }
 section() { echo -e "\n${BLUE}--- $1 ---${NC}"; }
 
 FAILURES=0
+STRICT_EXAMPLES="${VERIFY_STRICT_EXAMPLES:-0}"
 
 echo ""
 echo "============================================"
@@ -102,12 +104,25 @@ else
 fi
 
 # Python example tests
-section "Example Tests"
+# NOTE: examples/todo-app ships with 3 INTENTIONAL bugs as fixtures for the
+# /fix-issue, /tdd-loop, and /pre-commit skill demos. By default, failures here
+# are informational and do NOT count against installation verification.
+# Set VERIFY_STRICT_EXAMPLES=1 to treat them as hard failures (legacy behaviour).
+section "Example App (intentional bugs — informational)"
 if [ -d "examples/todo-app/tests" ]; then
-  if python3 -m pytest examples/todo-app/tests -q --tb=short 2>/dev/null; then
-    ok "todo-app tests: passing"
+  echo -e "${YELLOW}ℹ${NC} examples/todo-app contains 3 intentional bugs used to demonstrate"
+  echo -e "${YELLOW}ℹ${NC} the /fix-issue, /tdd-loop, and /pre-commit skills."
+  echo -e "${YELLOW}ℹ${NC} See examples/todo-app/README.md and examples/todo-app/CLAUDE.md."
+
+  if python3 -m pytest examples/todo-app/tests -q --tb=line 2>/dev/null; then
+    ok "todo-app tests: all passing (bugs may have been fixed already)"
   else
-    fail "todo-app tests: failing"
+    if [ "$STRICT_EXAMPLES" = "1" ]; then
+      fail "todo-app tests: failing (VERIFY_STRICT_EXAMPLES=1 — counted as failure)"
+    else
+      info "todo-app tests: failing as expected (3 seeded bugs — pedagogical fixture)"
+      info "to treat these as hard failures, run: VERIFY_STRICT_EXAMPLES=1 bash scripts/verify.sh"
+    fi
   fi
 else
   warn "todo-app tests directory not found"
@@ -117,9 +132,12 @@ fi
 echo ""
 echo "============================================"
 if [ "$FAILURES" -eq 0 ]; then
-  echo -e "${GREEN}All checks passed! ClaudeMaxPower is ready.${NC}"
+  echo -e "${GREEN}All infrastructure checks passed! ClaudeMaxPower is ready.${NC}"
+  if [ "$STRICT_EXAMPLES" != "1" ]; then
+    echo -e "${YELLOW}(Example-app tests are informational by default; set VERIFY_STRICT_EXAMPLES=1 to enforce.)${NC}"
+  fi
 else
-  echo -e "${RED}$FAILURES check(s) failed. Review the output above.${NC}"
+  echo -e "${RED}$FAILURES infrastructure check(s) failed. Review the output above.${NC}"
   exit 1
 fi
 echo "============================================"

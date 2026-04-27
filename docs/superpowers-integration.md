@@ -207,6 +207,36 @@ These exceptions exist so the methodology does not become theater. If you find y
 using them on every change, the shape of the work has shifted and the pipeline should be
 reconsidered.
 
+### Verifying subagent reviews
+
+`/subagent-dev` and `Agent(subagent_type=code-reviewer)` produce structured review
+output that *looks* authoritative. It is not. Treat reviewer output as a high-signal
+*hypothesis*, not a verdict. Verify each claim against the code before applying it.
+
+The canonical example: in an external effectiveness audit of this template, the
+dispatched code-reviewer caught a real TypeScript type-safety smell (valid finding,
+fix landed) but also reported a "logic bug" in `src/slug.ts` — a regex calculation it
+walked through incorrectly. Empirical re-reading of the code disproved the claim.
+Both findings came from the same review block, with the same confident tone.
+
+The rule that follows:
+
+- **Read the cited line.** A claim like "off-by-one in the truncation loop" only
+  matters if the loop actually has the off-by-one. Open the file at the cited line
+  and decide for yourself.
+- **Reproduce the alleged failure with a test.** If the reviewer says behaviour X
+  is wrong for input Y, write the test that asserts the correct behaviour. If the
+  test passes, the claim was wrong; if it fails, the fix is grounded.
+- **Distinguish style notes from correctness claims.** Style and naming critiques
+  are usually safe to apply on judgment alone. Correctness, performance, and
+  security claims need empirical confirmation.
+- **Resist the "it's-the-reviewer-so-it-must-be-right" reflex.** The whole point
+  of two-stage review is to surface signal — not to bypass your own judgment.
+
+This rule is itself an iron-law variant of law #3 (no fixes without root-cause
+investigation), applied to the special case where the "report" comes from another
+LLM session rather than a human bug report.
+
 ## 7. Memory Integration
 
 Superpowers methodology interacts with ClaudeMaxPower's Auto Dream memory consolidation in
