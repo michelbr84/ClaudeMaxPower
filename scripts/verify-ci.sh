@@ -11,15 +11,22 @@
 #   4. Check for Secrets             (grep)
 #   5. Verify Project Structure      (test -f)
 #
-# Skipped here (optional in CI; require Node / Python venv setup):
-#   - Lint Markdown        — install markdownlint-cli and run it directly
-#   - Run Example Tests    — bash scripts/setup.sh creates the venv, then `pytest`
+# Also mirrored when the local toolchain is present:
+#   6. Lint Markdown                 (markdownlint-cli; informational in CI — `|| true`)
+#   7. Run Example Tests             (pytest; informational + gating collection check)
+#
+# When 6 or 7 cannot run (markdownlint missing, or examples/todo-app/.venv not
+# created yet), the script prints an explicit SKIPPED line. Skipped checks are
+# never silently omitted, so a green local run is honest about what it covered.
+# To bring a skipped check online, install the missing tool or run
+# `bash scripts/setup.sh` to create the venv, then re-run this script.
 #
 # The shellcheck and actionlint binaries are downloaded once to
 # ${XDG_CACHE_HOME:-$HOME/.cache}/cmp-verify/bin and re-used. Delete that
 # directory to force a fresh download.
 #
-# Exit code: 0 if every check passes, 1 if any failed.
+# Exit code: 0 if every gating check passes, 1 if any gating check failed.
+# SKIPPED and INFO lines never affect the exit code.
 
 set -euo pipefail
 
@@ -29,15 +36,24 @@ CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/cmp-verify"
 BIN_DIR="$CACHE_DIR/bin"
 mkdir -p "$BIN_DIR"
 
-G='\033[0;32m'; R='\033[0;31m'; B='\033[0;34m'; D='\033[2m'; N='\033[0m'
+G='\033[0;32m'; R='\033[0;31m'; B='\033[0;34m'; Y='\033[1;33m'; D='\033[2m'; N='\033[0m'
 
 PASSED=0
 FAILED=0
+SKIPPED=0
+INFO=0
 FAILS=()
 
-ok()  { echo -e "  ${G}OK${N}    $1"; PASSED=$((PASSED + 1)); }
-no()  { echo -e "  ${R}FAIL${N}  $1"; FAILED=$((FAILED + 1)); FAILS+=("$1"); }
-sec() { echo ""; echo -e "${B}== $1 ==${N}"; }
+ok()   { echo -e "  ${G}OK${N}    $1"; PASSED=$((PASSED + 1)); }
+no()   { echo -e "  ${R}FAIL${N}  $1"; FAILED=$((FAILED + 1)); FAILS+=("$1"); }
+# info() — non-gating signal. Mirrors CI checks that use `|| true` or
+# `continue-on-error: true`. Counted separately so the user can see the local
+# mirror saw the same output CI would, without affecting exit code.
+info() { echo -e "  ${B}INFO${N}  $1"; INFO=$((INFO + 1)); }
+# skip() — local toolchain is missing. Counted separately so a clean local run
+# is never silently incomplete.
+skip() { echo -e "  ${Y}SKIP${N}  $1"; SKIPPED=$((SKIPPED + 1)); }
+sec()  { echo ""; echo -e "${B}== $1 ==${N}"; }
 
 # --- Sanity: must run from repo root ---
 if [ ! -f "CLAUDE.md" ] || [ ! -d ".github/workflows" ]; then
@@ -218,16 +234,78 @@ else
   for f in "${missing[@]}"; do echo "    $f"; done
 fi
 
+# --- 6. Markdown lint ---
+# Mirrors the lint-markdown CI job. CI uses `|| true` at the end of the run
+# block, so this check is informational — it never gates the build. We do the
+# same locally: warnings produce an INFO line, not a FAIL.
+sec "Lint Markdown  (markdownlint-cli)"
+if command -v markdownlint >/dev/null 2>&1; then
+  if [ -f ".markdownlint.json" ] \
+     && markdownlint README.md docs/*.md mcp/README.md \
+        --config .markdownlint.json >/dev/null 2>&1; then
+    ok "markdown clean (with .markdownlint.json)"
+  elif markdownlint README.md docs/*.md \
+       --disable MD013 MD033 MD041 >/dev/null 2>&1; then
+    ok "markdown clean (default rules minus MD013/MD033/MD041)"
+  else
+    info "markdown warnings present (CI is non-gating for this — informational)"
+  fi
+else
+  skip "markdownlint not installed (npm i -g markdownlint-cli to enable)"
+fi
+
+# --- 7. Example tests ---
+# Mirrors the test-examples CI job. CI runs `pytest -v --tb=short` with
+# continue-on-error: true (informational, since 3 todo-app tests are seeded
+# pedagogical bugs), then runs `pytest --collect-only -q` as the gating step.
+# We mirror both — the run is INFO, the collection check is OK/FAIL.
+sec "Run Example Tests  (pytest in examples/todo-app/.venv)"
+VENV_PY=""
+if   [ -x "examples/todo-app/.venv/bin/python" ]; then
+  VENV_PY="examples/todo-app/.venv/bin/python"
+elif [ -x "examples/todo-app/.venv/Scripts/python.exe" ]; then
+  VENV_PY="examples/todo-app/.venv/Scripts/python.exe"
+fi
+if [ -n "$VENV_PY" ]; then
+  if "$VENV_PY" -m pytest examples/todo-app/tests/ -q --tb=line >/dev/null 2>&1; then
+    info "todo-app tests: all green (CI run step is non-gating regardless)"
+  else
+    info "todo-app tests: failures present (3 are seeded pedagogical bugs — CI non-gating)"
+  fi
+  if "$VENV_PY" -m pytest examples/todo-app/tests/ --collect-only -q >/dev/null 2>&1; then
+    ok "test collection succeeds (gating in CI)"
+  else
+    no "test collection failed — pytest cannot import the test suite"
+  fi
+else
+  skip "examples/todo-app/.venv not present (run bash scripts/setup.sh first)"
+fi
+
 # --- Summary ---
 echo ""
 echo -e "${B}============================================${N}"
+TOTAL_GATING=$((PASSED + FAILED))
 if [ "$FAILED" -eq 0 ]; then
-  echo -e "${G}All $PASSED checks passed${N} — local matches CI."
-  echo -e "${B}============================================${N}"
+  echo -e "${G}All $PASSED gating checks passed${N} — local matches CI."
+else
+  echo -e "${R}$FAILED of $TOTAL_GATING gating checks failed${N}"
+  for f in "${FAILS[@]}"; do echo "  - $f"; done
+fi
+# Honesty line: surface non-gating signal so the user sees coverage, not just
+# "green". Helps avoid the "verify-ci.sh said green, CI said red" surprise.
+EXTRAS=""
+if [ "$INFO" -gt 0 ]; then
+  EXTRAS="$EXTRAS  ${B}INFO${N}: $INFO non-gating signal(s)"
+fi
+if [ "$SKIPPED" -gt 0 ]; then
+  EXTRAS="$EXTRAS  ${Y}SKIPPED${N}: $SKIPPED check(s) — install missing tooling to enable"
+fi
+if [ -n "$EXTRAS" ]; then
+  echo -e "$EXTRAS"
+fi
+echo -e "${B}============================================${N}"
+if [ "$FAILED" -eq 0 ]; then
   exit 0
 else
-  echo -e "${R}$FAILED of $((PASSED + FAILED)) checks failed${N}"
-  for f in "${FAILS[@]}"; do echo "  - $f"; done
-  echo -e "${B}============================================${N}"
   exit 1
 fi
