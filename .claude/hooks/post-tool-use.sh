@@ -7,6 +7,14 @@
 
 set -euo pipefail
 
+# Force non-interactive pagers — avoid subprocess hangs on minimal environments
+# (Git Bash without `less`, lean containers, CI runners). Every nested
+# git/npm/pytest invocation below inherits these. Use `${VAR:-default}` so
+# users who set their own pager are respected.
+export GIT_PAGER="${GIT_PAGER:-cat}"
+export PAGER="${PAGER:-cat}"
+export LESS="${LESS:-}"
+
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
