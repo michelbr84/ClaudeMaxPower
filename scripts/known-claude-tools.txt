@@ -1,0 +1,55 @@
+# Known Claude Code tool names — used by scripts/validate-skills.sh
+# One tool per line. Lines starting with # are comments.
+#
+# Update this file when Claude Code introduces new tools or renames existing ones.
+# Skills/agents that use a tool not listed here will produce a warning by default;
+# run validate-skills.sh --strict (or CMP_STRICT_TOOLS=1) to fail on unknowns.
+
+# Core file/shell tools
+Bash
+Read
+Edit
+Write
+Glob
+Grep
+NotebookEdit
+
+# Agent + task orchestration
+Agent
+TaskCreate
+TaskUpdate
+TaskList
+TaskGet
+TaskOutput
+TaskStop
+
+# Plan mode
+EnterPlanMode
+ExitPlanMode
+
+# Worktree mode
+EnterWorktree
+ExitWorktree
+
+# Web tools
+WebFetch
+WebSearch
+
+# MCP-related
+ListMcpResourcesTool
+ReadMcpResourceTool
+
+# Cron / scheduling
+CronCreate
+CronDelete
+CronList
+
+# Misc
+AskUserQuestion
+SendMessage
+PushNotification
+Monitor
+RemoteTrigger
+Skill
+ScheduleWakeup
+ToolSearch

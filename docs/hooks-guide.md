@@ -112,6 +112,30 @@ Every bash command Claude runs is logged to `.claude/audit.log`:
 
 This log is in `.gitignore` — it's local only. Use it to review what Claude did in a session.
 
+## Self-Test Your Hooks
+
+ClaudeMaxPower ships a hook self-test you can run anytime:
+
+```bash
+bash scripts/test-hooks.sh
+```
+
+It runs each hook script with synthetic env vars in an isolated temporary
+workspace and asserts the expected behaviour:
+
+- `pre-tool-use.sh` allows benign commands and blocks `rm -rf /` and force-pushes to main
+- `post-tool-use.sh` exits 0 when the file path is empty or non-source
+- `stop.sh` writes a session entry to `.estado.md` (inside the tmp workspace, never your real one)
+- `session-start.sh` runs cleanly even outside a git repository
+
+A mutation guard at the end confirms `git status` is unchanged after the script
+runs. If you customise a hook, re-run this script to verify your change still
+respects the contract Claude Code expects.
+
+> **What it does NOT verify:** whether Claude Code itself fires the hooks at the
+> right moment. That requires running inside Claude Code with appropriate tracing.
+> The self-test verifies the *scripts* are correct; firing is Claude Code's job.
+
 ## Writing Your Own Hooks
 
 Any shell script can be a hook. Tips:

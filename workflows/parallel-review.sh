@@ -42,10 +42,14 @@ if ! git rev-parse --is-inside-work-tree &>/dev/null; then
 fi
 
 MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
-WRITER_WORKTREE="/tmp/claudemaxpower-writer-$$"
-REVIEWER_WORKTREE="/tmp/claudemaxpower-reviewer-$$"
+
+# Portable temp dir — works on Linux, macOS, and Git Bash/MSYS on Windows.
+CMP_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/cmp.XXXXXX" 2>/dev/null || mktemp -d -t cmp.XXXXXX)"
+WRITER_WORKTREE="$CMP_TMPDIR/writer"
+REVIEWER_WORKTREE="$CMP_TMPDIR/reviewer"
 WRITER_BRANCH="${FEATURE}-writer"
-REVIEW_OUTPUT="/tmp/claudemaxpower-review-$$.md"
+# Review output lives in cwd (not the tmpdir) so it survives script exit.
+REVIEW_OUTPUT="parallel-review-${FEATURE}.md"
 
 cleanup() {
   echo ""
@@ -53,6 +57,7 @@ cleanup() {
   git worktree remove --force "$WRITER_WORKTREE" 2>/dev/null || true
   git worktree remove --force "$REVIEWER_WORKTREE" 2>/dev/null || true
   git branch -D "$WRITER_BRANCH" 2>/dev/null || true
+  rm -rf "$CMP_TMPDIR"
 }
 trap cleanup EXIT
 

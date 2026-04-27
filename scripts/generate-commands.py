@@ -96,7 +96,10 @@ def main() -> int:
         meta = parse_frontmatter(text)
         name = meta.get("name") or skill_file.stem
         out = CMD_DIR / f"{name}.md"
-        out.write_text(wrapper_text(name, meta), encoding="utf-8")
+        # newline="\n" prevents Python from translating \n to \r\n on Windows.
+        # The repo's .gitattributes enforces LF for *.md, so without this the
+        # working tree on Windows looks "modified" right after every setup.sh.
+        out.write_text(wrapper_text(name, meta), encoding="utf-8", newline="\n")
         written += 1
         print(f"  [OK] /{name} -> {out}")
 

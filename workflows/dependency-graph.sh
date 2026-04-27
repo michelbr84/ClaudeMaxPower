@@ -22,7 +22,11 @@ NC='\033[0m'
 
 SEARCH_DIR="${1:-src}"
 OUTPUT_FILE="${2:-docs/dependency-graph.svg}"
-DOT_FILE="/tmp/claudemaxpower-deps-$$.dot"
+
+# Portable temp dir — works on Linux, macOS, and Git Bash/MSYS on Windows.
+CMP_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/cmp.XXXXXX" 2>/dev/null || mktemp -d -t cmp.XXXXXX)"
+trap 'rm -rf "$CMP_TMPDIR"' EXIT
+DOT_FILE="$CMP_TMPDIR/deps.dot"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
