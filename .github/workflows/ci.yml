@@ -149,6 +149,9 @@ jobs:
       - name: Self-test hook scripts
         run: bash scripts/test-hooks.sh
 
+      - name: Self-test auto-dream
+        run: bash scripts/test-auto-dream.sh
+
   check-structure:
     name: Verify Project Structure
     runs-on: ubuntu-latest

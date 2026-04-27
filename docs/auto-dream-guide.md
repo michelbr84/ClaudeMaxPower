@@ -100,6 +100,32 @@ Or ask Claude:
 Run Auto Dream now — consolidate my memory files.
 ```
 
+## Self-Test
+
+Auto Dream is exercised by `scripts/test-auto-dream.sh`, a self-test that runs entirely
+in an isolated temporary directory and asserts the script's behaviour across each
+trigger state — missing memory dir, under-threshold no-op, over-threshold consolidation,
+stale lock cleanup, and live-lock skip. The harness ends with a working-tree mutation
+guard that fails if anything outside the tmp dir was written.
+
+```bash
+bash scripts/test-auto-dream.sh
+```
+
+The same test runs in CI alongside `scripts/test-hooks.sh` (see the
+`cross-platform-smoke` job in `.github/workflows/ci.yml`), so regressions are caught
+on Ubuntu, macOS, and Windows. If you change `scripts/auto-dream.sh`, re-run the
+self-test before sending a PR.
+
+> **Bash 4+ note.** Auto Dream's Phase 4 (rebuild index) uses associative arrays
+> (`declare -A`), introduced in bash 4. macOS ships `/bin/bash` 3.2, so the
+> consolidation path crashes there. The self-test detects bash version at runtime
+> and skips the consolidation-dependent cases under bash 3.x with a `[SKIP]`
+> message — the remaining cases (missing memory dir, under-threshold, live lock)
+> still run on every platform. macOS users who want full Auto Dream coverage
+> should install bash via Homebrew (`brew install bash`) and ensure it is on
+> PATH before invoking auto-dream.sh.
+
 ## What Auto Dream Does NOT Do
 
 Auto Dream handles the mechanical aspects of memory hygiene. It does **not**:
