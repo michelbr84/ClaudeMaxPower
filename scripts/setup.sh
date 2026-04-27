@@ -104,6 +104,56 @@ else
   ok ".env already exists."
 fi
 
+# 2b. Detect unfilled .env placeholders.
+# A common first-run footgun: setup says "complete!", the user opens Claude Code,
+# runs /fix-issue or /review-pr, and gets a cryptic auth failure because the .env
+# values are still the placeholder defaults from .env.example. We surface that
+# state as a warning at setup time so the failure is loud and close to the cause.
+# We never print the actual value — only the variable name and what it affects.
+check_env_placeholder() {
+  # Args: VAR_NAME, placeholder_default, impact_description
+  local var="$1"
+  local placeholder="$2"
+  local impact="$3"
+  local current
+
+  # Read the first matching assignment, strip surrounding quotes and any trailing CR.
+  # `|| true` neutralises pipefail when grep finds no match — that case is
+  # handled by the empty-string check below.
+  current="$(grep -E "^[[:space:]]*${var}=" .env 2>/dev/null \
+              | head -1 \
+              | sed -E "s/^[[:space:]]*${var}=//" \
+              | tr -d '\r' || true)"
+  current="${current#\"}"; current="${current%\"}"
+  current="${current#\'}"; current="${current%\'}"
+
+  # Treat missing key, empty value, and exact placeholder as unfilled.
+  if [ -z "$current" ] || [ "$current" = "$placeholder" ]; then
+    warn "$var is unfilled. Affects: $impact"
+    return 1
+  fi
+  return 0
+}
+
+UNFILLED=0
+if [ -f ".env" ]; then
+  echo ""
+  echo "Checking .env for unfilled placeholders..."
+  check_env_placeholder "GITHUB_TOKEN" "ghp_your_token_here" \
+    "/fix-issue, /review-pr, MCP GitHub integration (auth will fail)" || UNFILLED=$((UNFILLED + 1))
+  check_env_placeholder "DEFAULT_REPO" "your-username/your-repo" \
+    "skills that default to a repo when --repo is omitted" || UNFILLED=$((UNFILLED + 1))
+  check_env_placeholder "DB_URL" "postgresql://user:password@localhost:5432/mydb" \
+    "examples and workflows that read DB_URL" || UNFILLED=$((UNFILLED + 1))
+
+  if [ "$UNFILLED" -eq 0 ]; then
+    ok ".env values look filled (no known placeholders detected)."
+  else
+    warn "$UNFILLED .env value(s) still hold placeholder defaults. Edit .env to enable affected workflows."
+    warn "Setup will continue — placeholders are warnings, not hard failures."
+  fi
+fi
+
 # 3. Make hook scripts executable
 echo ""
 echo "Making hook scripts executable..."
