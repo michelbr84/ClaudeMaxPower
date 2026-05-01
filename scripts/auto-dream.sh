@@ -29,9 +29,14 @@ log_ok()    { echo -e "${GREEN}[AutoDream]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[AutoDream]${NC} $1"; }
 log_error() { echo -e "${RED}[AutoDream]${NC} $1"; }
 
+type_dir=""
+
 # shellcheck disable=SC2317  # invoked indirectly via `trap cleanup EXIT` below
 cleanup() {
     rm -f "$LOCK_FILE" 2>/dev/null || true
+    if [ -n "${type_dir:-}" ] && [ -d "$type_dir" ]; then
+        rm -rf "$type_dir" 2>/dev/null || true
+    fi
 }
 
 # --- Validation ---
@@ -165,10 +170,13 @@ log_info "Found ${duplicate_count} potential duplicates."
 # --- Phase 4: Rebuild index ---
 log_info "Phase 4: Rebuilding MEMORY.md index..."
 
-# Group files by type
-declare -A type_files
+# Group files by type. Bash 3.2 lacks `declare -A`, so we bucket entries into
+# one file per type inside an ephemeral temp dir; cleanup() removes it on exit.
+type_dir="$(mktemp -d "${TMPDIR:-/tmp}/auto-dream-types.XXXXXX")"
+
 for file in "${memory_files[@]}"; do
     type=$(grep -m1 '^type:' "$file" 2>/dev/null | sed 's/^type: *//' || echo "uncategorized")
+    [ -z "$type" ] && type="uncategorized"
     filename=$(basename "$file")
     name=$(grep -m1 '^name:' "$file" 2>/dev/null | sed 's/^name: *//' || echo "$filename")
     description=$(grep -m1 '^description:' "$file" 2>/dev/null | sed 's/^description: *//' || echo "")
@@ -178,22 +186,50 @@ for file in "${memory_files[@]}"; do
         description="${description:0:77}..."
     fi
 
-    entry="- [${name}](${filename}) -- ${description}"
-    type_files["$type"]="${type_files[$type]:-}${entry}\n"
+    # Restrict the type to characters safe for a filename to avoid surprises.
+    safe_type=$(printf '%s' "$type" | tr -c 'a-zA-Z0-9_-' '_')
+    [ -z "$safe_type" ] && safe_type="uncategorized"
+
+    printf -- '- [%s](%s) -- %s\n' "$name" "$filename" "$description" \
+        >> "$type_dir/${safe_type}.txt"
 done
 
-# Write new index
+# Capitalize first letter without bash 4's `${var^}` (not in macOS /bin/bash 3.2).
+capitalize() {
+    local s="$1"
+    [ -z "$s" ] && { printf ''; return; }
+    local first rest
+    first=$(printf '%s' "${s:0:1}" | tr '[:lower:]' '[:upper:]')
+    rest="${s:1}"
+    printf '%s%s' "$first" "$rest"
+}
+
+# Write new index — known types first in canonical order, then any extras.
 {
     echo "# Memory Index"
     echo ""
 
+    written=" "
     for type in "user" "feedback" "project" "reference" "uncategorized"; do
-        if [ -n "${type_files[$type]:-}" ]; then
-            # Capitalize first letter
-            header="${type^}"
-            echo "## ${header}"
-            echo -e "${type_files[$type]}"
+        f="$type_dir/${type}.txt"
+        if [ -s "$f" ]; then
+            echo "## $(capitalize "$type")"
+            cat "$f"
+            echo ""
+            written="$written$type "
         fi
+    done
+
+    # Catch any unknown types not in the canonical list.
+    for f in "$type_dir"/*.txt; do
+        [ -f "$f" ] || continue
+        type_base=$(basename "$f" .txt)
+        case "$written" in
+            *" $type_base "*) continue ;;
+        esac
+        echo "## $(capitalize "$type_base")"
+        cat "$f"
+        echo ""
     done
 } > "$MEMORY_INDEX"
 

@@ -117,14 +117,11 @@ The same test runs in CI alongside `scripts/test-hooks.sh` (see the
 on Ubuntu, macOS, and Windows. If you change `scripts/auto-dream.sh`, re-run the
 self-test before sending a PR.
 
-> **Bash 4+ note.** Auto Dream's Phase 4 (rebuild index) uses associative arrays
-> (`declare -A`), introduced in bash 4. macOS ships `/bin/bash` 3.2, so the
-> consolidation path crashes there. The self-test detects bash version at runtime
-> and skips the consolidation-dependent cases under bash 3.x with a `[SKIP]`
-> message — the remaining cases (missing memory dir, under-threshold, live lock)
-> still run on every platform. macOS users who want full Auto Dream coverage
-> should install bash via Homebrew (`brew install bash`) and ensure it is on
-> PATH before invoking auto-dream.sh.
+> **Portability note.** Auto Dream runs on bash 3.2+, including macOS's stock
+> `/bin/bash`. Phase 4 (rebuild index) avoids `declare -A` by bucketing entries
+> into a temporary per-type directory; the `${var^}` capitalization expansion
+> is also avoided. The self-test exercises the consolidation path on every
+> platform without skips.
 
 ## What Auto Dream Does NOT Do
 

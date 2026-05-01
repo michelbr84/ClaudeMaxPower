@@ -18,13 +18,9 @@
 #                                        unchanged (skipped cleanly)
 #
 # Bash version note:
-#   auto-dream.sh's Phase 4 (rebuild index) uses `declare -A` — a bash 4+
-#   feature. macOS ships /bin/bash 3.2, so the consolidation path crashes
-#   on stock macOS shells. Tests that exercise consolidation (cases 3 and
-#   4 above) are SKIPPED when running under bash < 4 rather than reported
-#   as failures. The script still validates the remaining cases on every
-#   platform. Making auto-dream.sh bash-3.2-compatible is tracked as a
-#   separate item.
+#   auto-dream.sh is bash 3.2 compatible (Phase 4 was reworked off
+#   `declare -A` to use a per-type temp dir). All cases below run on every
+#   platform, including macOS /bin/bash 3.2. No SKIPs on bash version.
 #
 # What is NOT tested:
 #   - Whether session-start hook actually triggers auto-dream.sh in production
@@ -151,15 +147,6 @@ echo "Workspace: $CMP_TMPDIR"
 echo "Bash:      ${BASH_VERSION:-unknown}"
 echo ""
 
-# auto-dream.sh's Phase 4 uses `declare -A` (bash 4+). macOS system bash is
-# 3.2, so consolidation crashes there. Skip consolidation-dependent cases
-# under bash < 4 with a clear message rather than failing on a known SUT
-# limitation that is intentionally out of scope for this PR.
-HAS_ASSOC_ARRAY=true
-if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ]; then
-  HAS_ASSOC_ARRAY=false
-fi
-
 NOW=$(date +%s)
 STALE_EPOCH=$((NOW - 25 * 3600))   # 25 hours ago — over the 24h threshold
 RECENT_EPOCH="$NOW"                # right now — under threshold
@@ -204,80 +191,72 @@ fi
 
 # 3. Over-threshold → consolidation runs ───────────────────────────────────
 note "over-threshold (>24h, 5+ sessions) → consolidation runs, MEMORY.md rebuilt"
-if [ "$HAS_ASSOC_ARRAY" = "true" ]; then
-  mem=$(make_memory_dir over-threshold)
-  write_state "$mem" "$STALE_EPOCH" 10
-  write_sample_memory "$mem" "user_profile" "user"
-  write_sample_memory "$mem" "feedback_one"  "feedback"
+mem=$(make_memory_dir over-threshold)
+write_state "$mem" "$STALE_EPOCH" 10
+write_sample_memory "$mem" "user_profile" "user"
+write_sample_memory "$mem" "feedback_one"  "feedback"
 
-  rc=$(run_auto_dream "$mem")
-  assert_eq "exits 0 in over-threshold case" "0" "$rc"
+rc=$(run_auto_dream "$mem")
+assert_eq "exits 0 in over-threshold case" "0" "$rc"
 
-  after_epoch=$(read_state_int "$mem/.dream-state.json" "last_dream_epoch")
-  if [ -n "$after_epoch" ] && [ "$after_epoch" -gt "$STALE_EPOCH" ]; then
-    echo -e "  ${GREEN}[PASS]${NC} last_dream_epoch advanced past stale value"
-    pass=$((pass + 1))
-  else
-    echo -e "  ${RED}[FAIL]${NC} last_dream_epoch did not advance (stale=$STALE_EPOCH, now=$after_epoch)"
-    fail=$((fail + 1))
-  fi
-
-  after_sessions=$(read_state_int "$mem/.dream-state.json" "sessions_since")
-  assert_eq "sessions_since reset to 0 after consolidation" "0" "$after_sessions"
-
-  files_processed=$(read_state_int "$mem/.dream-state.json" "files_processed")
-  assert_eq "files_processed records 2 input files" "2" "$files_processed"
-
-  if [ -f "$mem/MEMORY.md" ] && grep -q "^# Memory Index" "$mem/MEMORY.md"; then
-    echo -e "  ${GREEN}[PASS]${NC} MEMORY.md rebuilt with header"
-    pass=$((pass + 1))
-  else
-    echo -e "  ${RED}[FAIL]${NC} MEMORY.md missing or malformed"
-    fail=$((fail + 1))
-  fi
-
-  if grep -q "## User" "$mem/MEMORY.md" 2>/dev/null \
-     && grep -q "## Feedback" "$mem/MEMORY.md" 2>/dev/null; then
-    echo -e "  ${GREEN}[PASS]${NC} MEMORY.md groups entries by type"
-    pass=$((pass + 1))
-  else
-    echo -e "  ${RED}[FAIL]${NC} MEMORY.md type sections missing"
-    fail=$((fail + 1))
-  fi
+after_epoch=$(read_state_int "$mem/.dream-state.json" "last_dream_epoch")
+if [ -n "$after_epoch" ] && [ "$after_epoch" -gt "$STALE_EPOCH" ]; then
+  echo -e "  ${GREEN}[PASS]${NC} last_dream_epoch advanced past stale value"
+  pass=$((pass + 1))
 else
-  echo -e "  ${YELLOW}[SKIP]${NC} bash ${BASH_VERSINFO[0]:-?} < 4 — auto-dream.sh Phase 4 needs assoc arrays"
+  echo -e "  ${RED}[FAIL]${NC} last_dream_epoch did not advance (stale=$STALE_EPOCH, now=$after_epoch)"
+  fail=$((fail + 1))
+fi
+
+after_sessions=$(read_state_int "$mem/.dream-state.json" "sessions_since")
+assert_eq "sessions_since reset to 0 after consolidation" "0" "$after_sessions"
+
+files_processed=$(read_state_int "$mem/.dream-state.json" "files_processed")
+assert_eq "files_processed records 2 input files" "2" "$files_processed"
+
+if [ -f "$mem/MEMORY.md" ] && grep -q "^# Memory Index" "$mem/MEMORY.md"; then
+  echo -e "  ${GREEN}[PASS]${NC} MEMORY.md rebuilt with header"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} MEMORY.md missing or malformed"
+  fail=$((fail + 1))
+fi
+
+if grep -q "## User" "$mem/MEMORY.md" 2>/dev/null \
+   && grep -q "## Feedback" "$mem/MEMORY.md" 2>/dev/null; then
+  echo -e "  ${GREEN}[PASS]${NC} MEMORY.md groups entries by type"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} MEMORY.md type sections missing"
+  fail=$((fail + 1))
 fi
 
 # 4. Stale lock (dead PID) → cleared, dream runs ───────────────────────────
 note "stale lock (dead PID) → cleared, consolidation runs"
-if [ "$HAS_ASSOC_ARRAY" = "true" ]; then
-  mem=$(make_memory_dir stale-lock)
-  write_state "$mem" "$STALE_EPOCH" 10
-  write_sample_memory "$mem" "user_profile" "user"
+mem=$(make_memory_dir stale-lock)
+write_state "$mem" "$STALE_EPOCH" 10
+write_sample_memory "$mem" "user_profile" "user"
 
-  dead_pid=$(make_dead_pid)
-  echo "$dead_pid" > "$mem/.dream.lock"
+dead_pid=$(make_dead_pid)
+echo "$dead_pid" > "$mem/.dream.lock"
 
-  rc=$(run_auto_dream "$mem")
-  assert_eq "exits 0 with stale lock present" "0" "$rc"
+rc=$(run_auto_dream "$mem")
+assert_eq "exits 0 with stale lock present" "0" "$rc"
 
-  if [ ! -f "$mem/.dream.lock" ]; then
-    echo -e "  ${GREEN}[PASS]${NC} stale lock removed (cleanup trap fired)"
-    pass=$((pass + 1))
-  else
-    echo -e "  ${RED}[FAIL]${NC} stale lock NOT removed"
-    fail=$((fail + 1))
-  fi
-
-  if [ -f "$mem/MEMORY.md" ]; then
-    echo -e "  ${GREEN}[PASS]${NC} consolidation ran past the stale lock"
-    pass=$((pass + 1))
-  else
-    echo -e "  ${RED}[FAIL]${NC} consolidation did not run"
-    fail=$((fail + 1))
-  fi
+if [ ! -f "$mem/.dream.lock" ]; then
+  echo -e "  ${GREEN}[PASS]${NC} stale lock removed (cleanup trap fired)"
+  pass=$((pass + 1))
 else
-  echo -e "  ${YELLOW}[SKIP]${NC} bash ${BASH_VERSINFO[0]:-?} < 4 — same SUT limitation as case 3"
+  echo -e "  ${RED}[FAIL]${NC} stale lock NOT removed"
+  fail=$((fail + 1))
+fi
+
+if [ -f "$mem/MEMORY.md" ]; then
+  echo -e "  ${GREEN}[PASS]${NC} consolidation ran past the stale lock"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} consolidation did not run"
+  fail=$((fail + 1))
 fi
 
 # 5. Live lock (running PID) → skipped, state unchanged ────────────────────
