@@ -59,8 +59,8 @@ includes an "Attribution" block under its H1 heading naming the upstream skill.
 | `/tdd-loop`               | enhanced with methodology from `superpowers:test-driven-development` |
 
 Adapted files remain MIT-licensed. Modifications made for ClaudeMaxPower (frontmatter style,
-cross-references to ClaudeMaxPower skills and hooks, integration with Auto Dream and agent
-teams) do not change the license of the underlying content.
+cross-references to ClaudeMaxPower skills and hooks, integration with agent teams) do
+not change the license of the underlying content.
 
 ## How We Attribute
 
@@ -90,7 +90,6 @@ contributors. These are not attributed to any upstream project:
   `docs/superpowers-integration.md`.
 - Hooks — `session-start.sh`, `pre-tool-use.sh`, `post-tool-use.sh`, `stop.sh`, and their
   configuration in `.claude/settings.json`.
-- Auto Dream — the memory consolidation system and its state tracking in `.dream-state.json`.
 - `.estado.md` convention — session-to-session context handoff.
 - Specialized sub-agents — `code-reviewer`, `security-auditor`, `doc-writer`,
   `team-coordinator` in `.claude/agents/`.
