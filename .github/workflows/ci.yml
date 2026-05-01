@@ -14,7 +14,7 @@ jobs:
     name: Validate Shell Scripts
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install shellcheck v0.10.0
         run: |
@@ -37,7 +37,7 @@ jobs:
     name: Validate GitHub Actions Workflows
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install actionlint v1.7.7
         run: |
@@ -51,7 +51,7 @@ jobs:
     name: Validate JSON Files
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Validate settings.json
         run: jq empty .claude/settings.json
@@ -65,7 +65,7 @@ jobs:
     name: Check for Secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Ensure .env.example has no real secrets
         run: |
@@ -90,7 +90,7 @@ jobs:
     name: Lint Markdown
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install markdownlint
         run: npm install -g markdownlint-cli
@@ -111,7 +111,7 @@ jobs:
     name: Run Example Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -144,7 +144,7 @@ jobs:
         # Force bash on every runner (Git Bash on Windows).
         shell: bash
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Validate skill and agent frontmatter
         run: bash scripts/validate-skills.sh
@@ -159,7 +159,7 @@ jobs:
     name: Verify Project Structure
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Check required files exist
         run: |
