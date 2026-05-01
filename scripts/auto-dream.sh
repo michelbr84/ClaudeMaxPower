@@ -29,8 +29,9 @@ log_ok()    { echo -e "${GREEN}[AutoDream]${NC} $1"; }
 log_warn()  { echo -e "${YELLOW}[AutoDream]${NC} $1"; }
 log_error() { echo -e "${RED}[AutoDream]${NC} $1"; }
 
-# shellcheck disable=SC2317  # invoked indirectly via `trap cleanup EXIT` below
 type_dir=""
+
+# shellcheck disable=SC2317  # invoked indirectly via `trap cleanup EXIT` below
 cleanup() {
     rm -f "$LOCK_FILE" 2>/dev/null || true
     if [ -n "${type_dir:-}" ] && [ -d "$type_dir" ]; then
