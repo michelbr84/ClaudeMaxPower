@@ -1,5 +1,11 @@
 # Integrate Superpowers into ClaudeMaxPower + One-Command Bootstrap
 
+> **ARCHIVED** — This implementation plan dates from April 17 and describes the
+> pre-pivot CMP architecture (Auto Dream as feature, Superpowers methodology
+> inlined, etc.). It is superseded by
+> `~/.claude/plans/strategic-repositioning-plan-graceful-kite-v3.1.md`.
+> Kept for historical context only. Do not act on this document.
+
 ## Background
 
 **ClaudeMaxPower** is your power-user toolkit for Claude Code — it provides hooks, skills, agents, team coordination, memory/Auto Dream, and batch workflows. It's structured around a "team assembly" metaphor with role-based agents (Architect, Implementer, Tester, Reviewer, Doc Writer).
