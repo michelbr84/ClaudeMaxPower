@@ -2,6 +2,8 @@
 name: writing-plans
 description: DEPRECATED — use /superpowers:writing-plans instead. ClaudeMaxPower no longer ships its own copy of this skill.
 deprecated: true
+allowed-tools:
+  - Read
 ---
 
 # DEPRECATED

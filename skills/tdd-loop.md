@@ -2,6 +2,8 @@
 name: tdd-loop
 description: DEPRECATED — use /superpowers:test-driven-development instead. ClaudeMaxPower no longer ships its own copy of this skill.
 deprecated: true
+allowed-tools:
+  - Read
 ---
 
 # DEPRECATED

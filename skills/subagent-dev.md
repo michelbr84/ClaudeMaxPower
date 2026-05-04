@@ -2,6 +2,8 @@
 name: subagent-dev
 description: DEPRECATED — use /superpowers:subagent-driven-development instead. ClaudeMaxPower no longer ships its own copy of this skill.
 deprecated: true
+allowed-tools:
+  - Read
 ---
 
 # DEPRECATED

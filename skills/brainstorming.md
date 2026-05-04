@@ -2,6 +2,8 @@
 name: brainstorming
 description: DEPRECATED — use /superpowers:brainstorming instead. ClaudeMaxPower no longer ships its own copy of this skill.
 deprecated: true
+allowed-tools:
+  - Read
 ---
 
 # DEPRECATED

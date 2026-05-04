@@ -2,6 +2,8 @@
 name: using-worktrees
 description: DEPRECATED — use /superpowers:using-git-worktrees instead. ClaudeMaxPower no longer ships its own copy of this skill.
 deprecated: true
+allowed-tools:
+  - Read
 ---
 
 # DEPRECATED

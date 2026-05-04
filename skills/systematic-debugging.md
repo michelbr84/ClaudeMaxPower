@@ -2,6 +2,8 @@
 name: systematic-debugging
 description: DEPRECATED — use /superpowers:systematic-debugging instead. ClaudeMaxPower no longer ships its own copy of this skill.
 deprecated: true
+allowed-tools:
+  - Read
 ---
 
 # DEPRECATED

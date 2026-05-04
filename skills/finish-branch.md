@@ -2,6 +2,8 @@
 name: finish-branch
 description: DEPRECATED — use /superpowers:finishing-a-development-branch instead. ClaudeMaxPower no longer ships its own copy of this skill.
 deprecated: true
+allowed-tools:
+  - Read
 ---
 
 # DEPRECATED
