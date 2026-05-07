@@ -1,0 +1,17 @@
+# Code owners for ClaudeMaxPower
+#
+# This file declares default reviewers per path. GitHub will request review
+# from listed owners automatically when a PR touches matching files.
+#
+# Syntax: <pattern> <owner1> [owner2] ...
+# Owners must be GitHub logins or teams that have at least read access to the
+# repository. Order matters — later patterns override earlier ones.
+#
+# See: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+#
+# Maintainers note: this file lists only humans who have actually committed
+# to the relevant paths. Bot accounts (dependabot[bot]) and AI co-author
+# trailers are intentionally excluded.
+
+# Default owner for everything not matched below.
+* @michelbr84
