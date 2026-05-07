@@ -1,0 +1,44 @@
+# docker-compose.postgres.yml — OPTIONAL local-development Postgres for ClaudeMaxPower.
+#
+# ClaudeMaxPower itself does NOT require Postgres. This file exists only as a
+# convenience for example apps and local experiments that need a real DB.
+# See docs/dev-postgres.md for setup, security notes, and rotation steps.
+#
+# Always invoke explicitly with `-f docker-compose.postgres.yml` so the
+# optional nature is visible in every command.
+#
+#   start  : docker compose -f docker-compose.postgres.yml up -d
+#   stop   : docker compose -f docker-compose.postgres.yml down
+#   reset  : docker compose -f docker-compose.postgres.yml down -v
+#   shell  : docker compose -f docker-compose.postgres.yml exec postgres \
+#            psql -U postgres -d claudemaxpower
+#
+# Security:
+#   - Port is bound to 127.0.0.1 only (loopback). Never change to 0.0.0.0
+#     or a bare "5432:5432" — that would expose Postgres to the LAN.
+#   - POSTGRES_PASSWORD has no default. The compose file refuses to start
+#     unless the variable is set in your local .env (which is gitignored).
+#   - .env is in .gitignore. Never commit it. Never paste real DB
+#     credentials into issues, PRs, commits, docs, screenshots, or chat.
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: claudemaxpower-postgres
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_DB: claudemaxpower
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env (see .env.example and docs/dev-postgres.md)}
+    volumes:
+      - claudemaxpower_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d claudemaxpower"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  claudemaxpower_pgdata:
