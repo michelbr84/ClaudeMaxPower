@@ -146,7 +146,7 @@ if [ -f ".env" ]; then
   check_env_placeholder "DB_URL" "postgresql://postgres:change-me-local-only@127.0.0.1:5432/claudemaxpower" \
     "examples and workflows that read DB_URL (see docs/dev-postgres.md)" || UNFILLED=$((UNFILLED + 1))
   check_env_placeholder "POSTGRES_PASSWORD" "change-me-local-only" \
-    "docker-compose.postgres.yml refuses to start with the placeholder password" || UNFILLED=$((UNFILLED + 1))
+    "optional local Postgres setup; replace this placeholder before starting docker-compose.postgres.yml" || UNFILLED=$((UNFILLED + 1))
 
   if [ "$UNFILLED" -eq 0 ]; then
     ok ".env values look filled (no known placeholders detected)."
