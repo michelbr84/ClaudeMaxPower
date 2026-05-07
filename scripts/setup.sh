@@ -143,8 +143,10 @@ if [ -f ".env" ]; then
     "/fix-issue, /review-pr, MCP GitHub integration (auth will fail)" || UNFILLED=$((UNFILLED + 1))
   check_env_placeholder "DEFAULT_REPO" "your-username/your-repo" \
     "skills that default to a repo when --repo is omitted" || UNFILLED=$((UNFILLED + 1))
-  check_env_placeholder "DB_URL" "postgresql://user:password@localhost:5432/mydb" \
-    "examples and workflows that read DB_URL" || UNFILLED=$((UNFILLED + 1))
+  check_env_placeholder "DB_URL" "postgresql://postgres:change-me-local-only@127.0.0.1:5432/claudemaxpower" \
+    "examples and workflows that read DB_URL (see docs/dev-postgres.md)" || UNFILLED=$((UNFILLED + 1))
+  check_env_placeholder "POSTGRES_PASSWORD" "change-me-local-only" \
+    "docker-compose.postgres.yml refuses to start with the placeholder password" || UNFILLED=$((UNFILLED + 1))
 
   if [ "$UNFILLED" -eq 0 ]; then
     ok ".env values look filled (no known placeholders detected)."
