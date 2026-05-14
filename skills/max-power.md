@@ -110,51 +110,11 @@ test runners.
 
 Skip this step entirely if `CMP_INSTALLED=yes`.
 
-### 2.1 Decide install strategy
-
-If current directory is empty: install in-place.
-
-If current directory has files and CMP is not installed: ask the user:
-
-```
-ClaudeMaxPower is not installed in this directory and the directory is not empty.
-Choose an install strategy:
-  1) In-place — merge ClaudeMaxPower files alongside existing code (safe: will not overwrite)
-  2) Subdirectory — clone into ./claudemaxpower/ and ask you to cd into it
-  3) Abort — do nothing
-```
-
-Wait for user choice before proceeding.
-
-### 2.2 Clone and merge
-
-For in-place install, use `rsync` with `--ignore-existing` so user files are never
-overwritten:
-
-```bash
-TMP="/tmp/cmp-$$"
-git clone --depth 1 https://github.com/michelbr84/ClaudeMaxPower "$TMP"
-rsync -a --ignore-existing --exclude='.git' "$TMP/" ./
-rm -rf "$TMP"
-```
-
-For subdirectory install:
-
-```bash
-git clone --depth 1 https://github.com/michelbr84/ClaudeMaxPower ./claudemaxpower
-echo "Installed into ./claudemaxpower. cd into it and re-run /max-power."
-```
-
-### 2.3 Fallback if clone fails
-
-If `git clone` fails (no network, no git, proxy issues):
-
-```bash
-curl -fsSL https://github.com/michelbr84/ClaudeMaxPower/archive/refs/heads/main.tar.gz \
-  | tar -xz --strip-components=1 -C .
-```
-
-If both fail, report the error and stop. Ask the user to download the repo manually.
+If install is needed, **read `skills/references/max-power-install-strategies.md`** for the
+full decision tree (in-place vs subdirectory vs abort) and the exact `rsync`/`git clone`/
+`curl | tar` commands. Apply the strategy matched by the current directory state and the
+user's choice. Do not inline the install steps here — the reference file is the source of
+truth.
 
 ## Step 3 — Offer the Superpowers plugin (optional)
 
@@ -222,14 +182,14 @@ Match against these intent keywords (case-insensitive, any match counts):
 
 | Keywords | Route |
 |---------|------|
-| `bug`, `fix`, `error`, `broken`, `crash`, `regression` | `/systematic-debugging` (or `/fix-issue` if a GitHub issue number is mentioned) |
-| `new feature`, `add`, `build`, `create`, `implement` | `/brainstorming` (hard gate) |
+| `bug`, `fix`, `error`, `broken`, `crash`, `regression` | `/superpowers:systematic-debugging` (or `/fix-issue` if a GitHub issue number is mentioned) |
+| `new feature`, `add`, `build`, `create`, `implement` | `/superpowers:brainstorming` (hard gate) |
 | `review`, `pr`, `pull request` | `/review-pr` |
 | `refactor`, `rename`, `extract`, `cleanup` | `/refactor-module` |
-| `test`, `tdd`, `coverage` | `/tdd-loop` |
+| `test`, `tdd`, `coverage` | `/superpowers:test-driven-development` |
 | `docs`, `readme`, `documentation` | `/generate-docs` |
 | `team`, `parallel`, `several tasks` | `/assemble-team` |
-| `commit`, `stage`, `ready to push` | `/pre-commit` |
+| `commit message`, `commit msg`, `conventional commit` | `/gen-commit-message` |
 
 When you route, do not execute the downstream skill yourself. Tell the user the exact
 command to run and a one-line rationale. Example:
@@ -247,52 +207,36 @@ Print this menu verbatim:
 ```
 Claude Code + ClaudeMaxPower is active at maximum capability.
 
-Recommended pipeline:
-  1) /brainstorming <topic>        Design the feature (spec gate)
-  2) /writing-plans <spec-file>    Break spec into tasks
-  3) /subagent-dev <plan-file>     Execute via fresh subagents + 2-stage review
-  4) /finish-branch                Merge / PR / cleanup
+Recommended pipeline (Superpowers methodology, install with /plugin install superpowers@claude-plugins-official):
+  1) /superpowers:brainstorming <topic>                  Design the feature (spec gate)
+  2) /superpowers:writing-plans <spec-file>              Break spec into tasks
+  3) /superpowers:subagent-driven-development <plan>     Execute via fresh subagents + 2-stage review
+  4) /superpowers:finishing-a-development-branch         Merge / PR / cleanup
 
-Alternate entry points:
+Native ClaudeMaxPower entry points:
   /assemble-team --mode new-project --description "..."
   /fix-issue --issue <N> --repo owner/repo
-  /systematic-debugging --issue "<describe bug>"
-  /tdd-loop --spec "..." --file path
   /review-pr --pr <N> --repo owner/repo
   /refactor-module --file <path> --goal "..."
-  /pre-commit
   /generate-docs --dir src/
+  /gen-commit-message
+  /superpowers-redirect            (when you type an old /brainstorming-style command)
 
-Governance skills (auto-fire):
-  - session-start hook   context restore + Auto Dream
-  - pre-tool-use hook    blocks dangerous commands
-  - post-tool-use hook   auto-run tests on edit
-  - stop hook            persist .estado.md
+Governance hooks (auto-fire, no invocation needed):
+  - session-start hook       context restore + Auto Dream
+  - pre-tool-use hook        blocks dangerous commands
+  - pre-commit-check hook    secret/debug/large-file/linter scan before git commit
+  - post-tool-use hook       auto-run tests on edit
+  - stop hook                persist .estado.md
 
 What's your goal? (free text or pick a number above)
 ```
 
 ## Step 7 — Status dashboard
 
-End with a compact, emoji-free status block. Fill values from what was detected and
-installed:
-
-```
-ClaudeMaxPower status
----------------------
-Version            v2.0
-Mode               new-project | existing-project
-Tech stack         <detected list or "none detected">
-Skills loaded      brainstorming, writing-plans, subagent-dev, tdd-loop, tdd-loop-lite,
-                   systematic-debugging, finish-branch, using-worktrees, assemble-team,
-                   fix-issue, review-pr, refactor-module, pre-commit, generate-docs
-Hooks active       session-start, pre-tool-use, post-tool-use, stop
-Agent teams        enabled (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
-Auto Dream         configured (trigger: 24h + 5 sessions)
-Superpowers plugin <installed | not installed>
-Environment        <.env ok | .env missing placeholders>
-Next action        <recommended skill from Step 6>
-```
+Render the dashboard template at `skills/references/max-power-status-dashboard.md`,
+substituting the values you detected in Steps 1–6. The template lives in a reference file
+so the field list and skill/hook inventories can be updated independently of this skill.
 
 ## Error handling summary
 
@@ -329,3 +273,6 @@ Next action        <recommended skill from Step 6>
 - The status dashboard was printed
 
 If any criterion fails, report which one and what to do about it.
+
+**Feedback:** Did `/max-power` land you on the right next step? Reply with a 1–10 rating,
+what slowed you down, or a faster path from where you started to where you ended.

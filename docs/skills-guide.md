@@ -41,23 +41,17 @@ The `allowed-tools` list restricts which Claude tools the skill can use — a se
 
 ## Available Skills
 
-ClaudeMaxPower ships two families of skills:
+The methodology skills (brainstorming, plans, TDD, debugging, worktrees, finish) live
+upstream in the **Superpowers plugin**. Install with
+`/plugin install superpowers@claude-plugins-official` and invoke them under the
+`/superpowers:*` namespace. Read [superpowers-integration.md](superpowers-integration.md)
+for when to use each one.
 
-**Pipeline skills** (adapted from [obra/superpowers](https://github.com/obra/superpowers), MIT)
-form the brainstorm → spec → plan → execute → finish pipeline. Read each skill file for
-full details; the summaries in [superpowers-integration.md](superpowers-integration.md) cover
-when to use which one:
+ClaudeMaxPower keeps one stub — `/superpowers-redirect` — that catches the old slash
+commands (`/brainstorming`, `/tdd-loop`, etc.) and points users to the canonical
+replacements.
 
-- `/brainstorming` — collaborative design refinement, produces an approved spec (hard gate)
-- `/writing-plans` — breaks the spec into bite-sized tasks (2-5 min each)
-- `/subagent-dev` — dispatches a fresh subagent per task with two-stage review
-- `/systematic-debugging` — 4-phase root-cause debugging
-- `/using-worktrees` — creates an isolated git worktree with safety checks
-- `/finish-branch` — merge / PR / keep / discard + worktree cleanup
-- `/tdd-loop` — strict Red-Green-Refactor with iron-law enforcement
-- `/tdd-loop-lite` — the simpler TDD loop kept for flexibility
-
-**Native skills** are documented in detail below.
+**Native ClaudeMaxPower skills** are documented in detail below.
 
 ### /max-power
 
@@ -116,31 +110,26 @@ Safe module refactor with test-backed confidence.
 
 ---
 
-### /tdd-loop
+### /gen-commit-message
 
-Autonomous TDD loop — tests first, implement until green.
+Read the staged diff and propose a Conventional Commits message. Replaces the LLM portion
+of the old `/pre-commit` skill — the deterministic checks (secrets, debug statements, large
+files, linter) now run automatically via the `pre-commit-check.sh` hook.
 
 ```bash
-/tdd-loop --spec "Add search_tasks(query) that returns tasks matching query (case-insensitive)" --file src/todo.py
+/gen-commit-message
 ```
 
-**Workflow:** Parse spec → write tests (RED) → write implementation → iterate until GREEN → refactor
-
-**Max iterations:** 10. Reports progress at each iteration.
+**Workflow:** Verify staged changes → read diff → propose `<type>(<scope>): <subject>` → ask user "use / edit / regenerate"
 
 ---
 
-### /pre-commit
+### /superpowers-redirect
 
-Intelligent pre-commit check before every commit.
-
-```bash
-/pre-commit
-```
-
-**Workflow:** Inspect staged diff → scan for secrets → find debug statements → check large files → run linter → generate commit message
-
-**Output:** Pass/fail report + suggested conventional commit message
+Catches the old slash commands that have moved upstream (`/brainstorming`,
+`/writing-plans`, `/subagent-dev`, `/tdd-loop`, `/systematic-debugging`,
+`/using-worktrees`, `/finish-branch`) and tells the user the canonical `/superpowers:*`
+replacement.
 
 ---
 
@@ -194,6 +183,27 @@ BRANCH="${BRANCH:-$(git rev-parse --abbrev-ref HEAD)}"
 - Specify what to do on failure, not just on success
 - Keep `allowed-tools` minimal — principle of least privilege
 - Test the skill end-to-end before sharing
+
+## Progressive Disclosure: skills/references/
+
+Heavy reference content — long checklists, role catalogues, install scripts, helper one-liners — lives under `skills/references/` instead of being inlined into the skill body.
+The skill points to the reference file when it needs the content; Claude reads it on demand
+rather than on every session start.
+
+Current reference files:
+
+| File | Used by |
+|---|---|
+| `skills/references/team-roster.md` | `/assemble-team` Step 3 (role catalogue, composition rules, spawn order, dependencies) |
+| `skills/references/review-pr-checklist.md` | `/review-pr` Step 3 (Correctness/Security/Tests/Style/Breaking/Operational checklist) |
+| `skills/references/max-power-install-strategies.md` | `/max-power` Step 2 (in-place / subdirectory / tarball-fallback install commands) |
+| `skills/references/max-power-status-dashboard.md` | `/max-power` Step 7 (status block template) |
+| `skills/references/extract-api-python.sh` | `/generate-docs` Step 1 (Python API surface extraction) |
+| `skills/references/extract-api-typescript.sh` | `/generate-docs` Step 1 (TypeScript/JavaScript API surface extraction) |
+
+When you write a new skill: if the body grows past ~150 lines or contains a long table /
+checklist / template that would be useful to other skills, extract it to
+`skills/references/<topic>.md` and reference it from the skill body.
 
 ## Validate Skill Frontmatter
 
