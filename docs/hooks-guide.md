@@ -76,6 +76,28 @@ Each hook entry specifies a shell command to run. The hook can:
 
 ---
 
+### pre-commit-check.sh
+
+**Fires:** Before every Bash tool execution (filters internally — only acts on `git commit`).
+
+**What it does:**
+1. Inspects `git diff --staged` for likely secrets (api keys, tokens, passwords). **Blocks**
+   the commit if any are found.
+2. Warns on debug statements (`console.log`, `print(`, `debugger`, `pdb.set_trace`,
+   `breakpoint()`, `TODO: REMOVE`, `FIXME: REMOVE`).
+3. Warns on staged files larger than 1MB.
+4. Runs `flake8` on staged `.py` files (warning only).
+5. Runs `npx eslint` on staged `.js/.jsx/.ts/.tsx` files (warning only).
+
+**Why it matters:** Replaces the deterministic checks of the old `/pre-commit` skill so
+they fire automatically before every commit — no need to remember to invoke a skill.
+
+**Customize:** Edit `.claude/hooks/pre-commit-check.sh`. The LLM-judgment portion of the old
+skill (Conventional Commits message generation) now lives in
+`skills/gen-commit-message.md`.
+
+---
+
 ### post-tool-use.sh
 
 **Fires:** After every Edit or Write tool call.
@@ -128,6 +150,7 @@ It runs each hook script with synthetic env vars in an isolated temporary
 workspace and asserts the expected behaviour:
 
 - `pre-tool-use.sh` allows benign commands and blocks `rm -rf /` and force-pushes to main
+- `pre-commit-check.sh` exits 0 silently for non-`git commit` commands; blocks on staged secrets
 - `post-tool-use.sh` exits 0 when the file path is empty or non-source
 - `stop.sh` writes a session entry to `.estado.md` (inside the tmp workspace, never your real one)
 - `session-start.sh` runs cleanly even outside a git repository

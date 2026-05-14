@@ -85,3 +85,6 @@ Tell the user:
 - What changed in the public API (if anything)
 - Final test results (before vs. after comparison)
 - Any issues discovered during refactoring
+
+**Feedback:** Did this skill do what you needed? Reply with a 1–10 rating, what slowed you
+down, or a faster path from where you started to where you ended.

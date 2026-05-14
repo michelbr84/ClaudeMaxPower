@@ -25,11 +25,17 @@ Perform a thorough code review of a GitHub pull request and post structured feed
 
 ## Workflow
 
-### Step 1: Load environment
+### Step 1: Load environment and gate on required arguments
 ```bash
 [ -f .env ] && export $(grep -v '^#' .env | xargs)
 REPO="${REPO:-$DEFAULT_REPO}"
 ```
+
+If `REPO` is still empty, **stop and ask the user** (use AskUserQuestion if available, or
+prompt directly): "Which repository should I target? Format: `owner/repo`."
+Do not proceed past Step 1 with an empty `REPO`.
+
+If `PR` is missing, ask the user for the PR number before continuing.
 
 ### Step 2: Fetch PR metadata and diff
 ```bash
@@ -43,35 +49,12 @@ Read:
 - Labels and reviewers
 - Full file diff
 
-### Step 3: Analyze the diff
+### Step 3: Analyze the diff against the review checklist
 
-Evaluate the changes across these dimensions:
-
-**Correctness**
-- [ ] Logic errors or edge cases not handled?
-- [ ] Off-by-one errors, null dereferences, race conditions?
-- [ ] Error cases handled (not just happy path)?
-
-**Security (OWASP Top 10 basics)**
-- [ ] Any SQL built via string concatenation (SQL injection risk)?
-- [ ] User input rendered directly in output (XSS risk)?
-- [ ] Secrets or credentials in code or comments?
-- [ ] New dependencies introduced? Are they from trusted sources?
-
-**Tests**
-- [ ] Are new features covered by tests?
-- [ ] Are bug fixes accompanied by a regression test?
-- [ ] Do the tests actually test what they claim?
-
-**Style and maintainability**
-- [ ] Consistent with project conventions (from CLAUDE.md)?
-- [ ] Function/variable names clear and descriptive?
-- [ ] Any obvious code duplication that could be extracted?
-
-**Breaking changes**
-- [ ] Does this change any public APIs or interfaces?
-- [ ] Are all callers updated?
-- [ ] Is there a migration path?
+Read the full checklist in `skills/references/review-pr-checklist.md` and apply each section
+(Correctness, Security, Tests, Style, Breaking changes, Operational) to the diff. The
+checklist lives in a separate file so this skill body stays lean and the checklist itself
+can evolve independently.
 
 ### Step 4: Compose structured review
 
@@ -101,7 +84,22 @@ Format your review as:
 - <assessment of test coverage>
 ```
 
-### Step 5: Post the review
+### Step 5: Confirm before posting
+
+Show the drafted review to the user and **ask** before posting:
+
+```
+I've drafted the review. Choose:
+  1) Post as-is
+  2) Edit (tell me what to change)
+  3) Cancel (don't post)
+```
+
+Wait for the user's choice. Do not skip this step — posting a review is a public, hard-to-
+reverse action.
+
+### Step 6: Post the review (only if user chose option 1)
+
 ```bash
 gh pr review $PR --repo $REPO \
   --comment \
@@ -118,5 +116,8 @@ If clean:
 gh pr review $PR --repo $REPO --approve --body "<review>"
 ```
 
-### Step 6: Report to user
+### Step 7: Report to user
 Tell the user the verdict and list any blocking issues found.
+
+**Feedback:** Did this skill do what you needed? Reply with a 1–10 rating, what slowed you
+down, or a faster path from where you started to where you ended.

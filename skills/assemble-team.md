@@ -56,11 +56,18 @@ ls docs/specs/*-design.md 2>/dev/null
 ls docs/specs/*-design.md 2>/dev/null
 ```
 
-- If `--goals` is vague (e.g. "improve the app", "make it better", "modernize", "clean up"), suggest running `/brainstorming` first to sharpen intent into concrete tasks, and stop unless the user explicitly confirms they want to proceed with exploratory analysis.
+- If `--goals` is vague (e.g. "improve the app", "make it better", "modernize", "clean up"), **stop and ask the user explicitly**:
+
+  > Goals are too high-level for team assembly. The right next step is
+  > `/superpowers:brainstorming` to sharpen intent into concrete tasks. Continue with
+  > exploratory analysis anyway? (yes/no — default no)
+
+  Treat any answer other than an explicit "yes" as no, and stop. Do not silently fall
+  through to the team build.
 - If `--goals` is concrete — references GitHub issues (`#10 #11 #12`), specific file TODOs, named features, or points to an existing spec in `docs/specs/` — proceed to Step 1.
 - If specs exist in `docs/specs/`, read them and use them alongside `--goals` when designing the team.
 
-State clearly in the chat: "No implementation until spec is approved — this is the same hard gate enforced by /brainstorming."
+State clearly in the chat: "No implementation until spec is approved — this is the same hard gate enforced by /superpowers:brainstorming."
 
 ### Step 1: Determine mode and validate inputs
 
@@ -96,32 +103,16 @@ If mode is missing or invalid, ask the user.
 
 ### Step 3: Design the team composition
 
-Based on the analysis, select teammates from this roster:
-
-| Role | Best For | Tools |
-|------|----------|-------|
-| **Architect** | Designing structure, API contracts, module boundaries | Read, Glob, Grep, Write |
-| **Implementer** | Writing production code | Read, Edit, Write, Bash, Glob, Grep |
-| **Tester** | Writing and running tests (TDD-first) | Read, Edit, Write, Bash, Glob, Grep |
-| **Reviewer** | Code review, catching bugs and security issues | Read, Glob, Grep |
-| **Doc Writer** | README, API docs, inline documentation | Read, Edit, Write, Glob, Grep |
-| **Analyst** | Codebase mapping, dependency analysis, tech debt | Read, Glob, Grep, Bash |
-| **Security Auditor** | OWASP scanning, credential checks, dependency audit | Read, Glob, Grep, Bash |
-| **DevOps** | CI/CD, Docker, deployment configs | Read, Edit, Write, Bash, Glob, Grep |
-
-Rules:
-- Always include a **Reviewer** — no code ships without review
-- For new-project: always include **Architect** + **Implementer** + **Tester**
-- For existing-project: always include **Analyst** first (it must finish before others start)
-- Respect TEAM_SIZE limit — combine roles if needed (e.g., Tester+Reviewer)
+Read `skills/references/team-roster.md` for the full role catalogue (Architect,
+Implementer, Tester, Reviewer, Doc Writer, Analyst, Security Auditor, DevOps), the
+composition rules, the spawn order, and the task-dependency policy. Select teammates from
+that roster based on your Step 2 analysis. The roster lives in a reference file so it can
+evolve without churning this skill body.
 
 ### Step 4: Create the shared task list
 
-Create tasks using `TaskCreate` for each work item. Set dependencies:
-- Architect tasks block Implementer tasks
-- Analyst tasks block all other tasks (existing-project mode)
-- Implementer tasks block Reviewer tasks
-- All code tasks block Doc Writer tasks
+Create tasks using `TaskCreate` for each work item. Apply the dependency rules from
+`skills/references/team-roster.md` (Task dependencies section).
 
 Each task must have:
 - Clear subject (imperative form)
@@ -141,15 +132,14 @@ Agent(
 )
 ```
 
-**Spawn order:**
-1. First wave: Architect or Analyst (must complete before others)
-2. Second wave: Implementers + Testers (can run in parallel)
-3. Third wave: Reviewer (after code is written)
-4. Fourth wave: Doc Writer (after review passes)
+**Spawn order:** see "Spawn order" in `skills/references/team-roster.md`. For the second
+wave, spawn all agents in a single message (parallel execution).
 
-For the second wave, spawn all agents in a single message (parallel execution).
-
-**Execution strategy option:** For teams where tasks are mostly independent, consider using `/subagent-dev` as the execution backbone instead of spawning all teammates upfront. This gives you fresh-context subagents per task with two-stage review (spec compliance then code quality). Use `/writing-plans` to produce the plan file, then `/subagent-dev --plan <file>`.
+**Execution strategy option:** For teams where tasks are mostly independent, consider using
+`/superpowers:subagent-driven-development` as the execution backbone instead of spawning all
+teammates upfront. This gives you fresh-context subagents per task with two-stage review
+(spec compliance then code quality). Use `/superpowers:writing-plans` to produce the plan
+file, then `/superpowers:subagent-driven-development --plan <file>`.
 
 ### Step 6: Coordinate and synthesize
 
@@ -183,6 +173,10 @@ Output a structured summary:
 - [remaining work or recommendations]
 ```
 
+**Feedback:** Did `/assemble-team` produce the right composition for your work? Reply with
+a 1–10 rating, what slowed you down, or a faster path from where you started to where you
+ended.
+
 ## Error Handling
 
 - If a teammate fails, log the error and reassign the task to the coordinator
@@ -209,7 +203,7 @@ Output a structured summary:
 
 ## Related skills
 
-- `/brainstorming` — Step 0 gate. Produces the approved design spec in `docs/specs/` that this skill consumes. Required for `new-project` mode; recommended when `existing-project` goals are vague.
-- `/writing-plans` — Turns an approved spec into a concrete task breakdown plan file. Pair with `/subagent-dev` for the alternate execution path.
-- `/subagent-dev` — Alternate execution backbone. Runs tasks through fresh-context subagents with two-stage review. Preferred when tasks are largely independent.
-- `/finish-branch` — Post-completion workflow. Once the team has finished and all checks pass, use this to merge, open a PR, or clean up the development branch.
+- `/superpowers:brainstorming` — Step 0 gate. Produces the approved design spec in `docs/specs/` that this skill consumes. Required for `new-project` mode; recommended when `existing-project` goals are vague.
+- `/superpowers:writing-plans` — Turns an approved spec into a concrete task breakdown plan file. Pair with `/superpowers:subagent-driven-development` for the alternate execution path.
+- `/superpowers:subagent-driven-development` — Alternate execution backbone. Runs tasks through fresh-context subagents with two-stage review. Preferred when tasks are largely independent.
+- `/superpowers:finishing-a-development-branch` — Post-completion workflow. Once the team has finished and all checks pass, use this to merge, open a PR, or clean up the development branch.

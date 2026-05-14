@@ -28,34 +28,44 @@ Scan source files and generate or update structured markdown documentation.
 
 ## Workflow
 
-### Step 1: Discover source files
+### Step 0: Validate prerequisites
+
+- If `--dir` is missing or not a readable directory, **stop and ask the user**: "Which
+  directory should I scan?"
+- Resolve the output directory (`--output` or default `docs/api/`). If it doesn't exist,
+  attempt to create it; if the parent isn't writable, ask the user for an alternative path.
+- Detect the dominant stack of `--dir`: count `.py` vs `.ts`/`.tsx`/`.js`/`.jsx` files.
+  Pick the helper script for the dominant stack (or run both if the directory is mixed).
+
+### Step 1: Discover source files and extract public API
+
+Run the helper script for the detected stack — these live in `skills/references/` so the
+extraction logic can be tuned independently of this skill:
+
 ```bash
 # Python
-find $DIR -name "*.py" -not -path "*/test*" -not -name "__init__.py"
+bash skills/references/extract-api-python.sh "$DIR"
 
-# JavaScript/TypeScript
-find $DIR -name "*.ts" -o -name "*.js" -not -path "*/node_modules/*" -not -name "*.test.*"
+# TypeScript/JavaScript
+bash skills/references/extract-api-typescript.sh "$DIR"
 ```
 
-List all source files found.
+Each helper outputs one line per definition: `<file>:<line>:<signature>`.
 
-### Step 2: Extract public API from each file
+For each definition reported:
+- **Python**: include the existing docstring (read the file, capture the triple-quoted block
+  immediately after the `def`/`class`).
+- **TypeScript/JavaScript**: include the JSDoc block (the `/** ... */` immediately above the
+  `export`).
+- Skip any name starting with `_` (Python convention) or marked `@internal` (JSDoc).
 
-For each source file:
-- **Python**: extract all `def` and `class` definitions that don't start with `_`
-  - Include existing docstrings if present
-  - Include function signatures (parameters + type hints)
-- **JavaScript/TypeScript**: extract all `export function`, `export class`, `export const`
-  - Include JSDoc comments if present
-  - Include TypeScript type signatures
-
-### Step 3: Generate missing docstrings (in-source)
+### Step 2: Generate missing docstrings (in-source)
 For any public function/class missing documentation:
-1. Infer purpose from the function name and body
-2. Add a docstring directly to the source file (Python: `"""..."""`, JS: `/** ... */`)
-3. Only add docstrings — do not change logic
+1. Infer purpose from the function name and body.
+2. Add a docstring directly to the source file (Python: `"""..."""`, JS: `/** ... */`).
+3. Only add docstrings — do not change logic.
 
-### Step 4: Create or update docs files
+### Step 3: Create or update docs files
 
 For each source file `src/foo.py`, create or update `docs/api/foo.md`:
 
@@ -84,7 +94,7 @@ result = function_name(arg1, arg2)
 ---
 ```
 
-### Step 5: Update docs index
+### Step 4: Update docs index
 Update or create `docs/api/README.md` with a table of all documented modules:
 
 ```markdown
@@ -96,7 +106,7 @@ Update or create `docs/api/README.md` with a table of all documented modules:
 | [bar](bar.md) | <one-liner> |
 ```
 
-### Step 6: Report
+### Step 5: Report
 Tell the user:
 - Files scanned: N
 - Functions/classes documented: M
@@ -104,3 +114,6 @@ Tell the user:
 - Docs files created: X
 - Docs files updated: Y
 - Output location: `docs/api/`
+
+**Feedback:** Did this skill do what you needed? Reply with a 1–10 rating, what slowed you
+down, or a faster path from where you started to where you ended.

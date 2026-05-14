@@ -27,33 +27,40 @@ At the start of every session:
 
 ## The Unified Pipeline (Superpowers + ClaudeMaxPower)
 
+The methodology skills (brainstorming, plans, TDD, debugging, worktrees, finish) live
+upstream in the Superpowers plugin. Install with
+`/plugin install superpowers@claude-plugins-official` and invoke them with the
+`/superpowers:*` namespace. ClaudeMaxPower keeps a thin `/superpowers-redirect` skill that
+catches the old slash commands and points users to the canonical replacements.
+
 ```
 Idea
- ├─ /brainstorming        → docs/specs/YYYY-MM-DD-<topic>-design.md   (hard gate: user must approve)
- ├─ /writing-plans        → docs/plans/YYYY-MM-DD-<topic>-plan.md     (bite-sized tasks, 2-5 min each)
- ├─ /using-worktrees      → isolated branch workspace
- ├─ /subagent-dev         → fresh subagent per task + two-stage review (spec → quality)
- │    └─ /tdd-loop            (strict Red-Green-Refactor, iron law)
- │    └─ /systematic-debugging (when a bug is encountered: root cause before fix)
- └─ /finish-branch        → merge / PR / keep / discard + worktree cleanup
+ ├─ /superpowers:brainstorming                      → docs/specs/YYYY-MM-DD-<topic>-design.md (hard gate)
+ ├─ /superpowers:writing-plans                      → docs/plans/YYYY-MM-DD-<topic>-plan.md
+ ├─ /superpowers:using-git-worktrees                → isolated branch workspace
+ ├─ /superpowers:subagent-driven-development        → fresh subagent per task + two-stage review
+ │    └─ /superpowers:test-driven-development           (strict Red-Green-Refactor, iron law)
+ │    └─ /superpowers:systematic-debugging              (root cause before fix)
+ └─ /superpowers:finishing-a-development-branch     → merge / PR / keep / discard + worktree cleanup
 ```
 
-Alternate entry points:
-- **Existing GitHub issue** → `/fix-issue` (escalates to `/systematic-debugging` if stuck)
+Alternate entry points (native ClaudeMaxPower skills):
+- **Existing GitHub issue** → `/fix-issue` (escalates to `/superpowers:systematic-debugging` if stuck)
 - **Structured review** → `/review-pr`
-- **Architectural refactor** → `/brainstorming` + `/writing-plans`
+- **Architectural refactor** → `/superpowers:brainstorming` + `/superpowers:writing-plans`
 - **Simple refactor** → `/refactor-module`
 - **Team pattern for large features** → `/assemble-team` (enforces brainstorming gate in new-project mode)
+- **Conventional Commits message** → `/gen-commit-message` (the deterministic pre-commit checks now run automatically via `.claude/hooks/pre-commit-check.sh`)
 - **One-command bootstrap** → `/max-power` (installs, configures, presents menu)
 
 ## The Four Iron Laws
 
-These are enforced by the skills above and should be respected in every session:
+These are enforced by the skills/hooks above and should be respected in every session:
 
-1. **No production code without a failing test first** (/tdd-loop)
-2. **No implementation without an approved spec** (/brainstorming hard gate)
-3. **No fixes without root cause investigation** (/systematic-debugging Phase 1)
-4. **No merging with failing tests** (/finish-branch verification step)
+1. **No production code without a failing test first** (`/superpowers:test-driven-development`)
+2. **No implementation without an approved spec** (`/superpowers:brainstorming` hard gate)
+3. **No fixes without root cause investigation** (`/superpowers:systematic-debugging` Phase 1)
+4. **No merging with failing tests** (`/superpowers:finishing-a-development-branch` verification step)
 
 ## Core Coding Conventions
 
@@ -81,22 +88,11 @@ These are enforced by the skills above and should be respected in every session:
 
 ## Skills Available
 
-The following skills are defined in `skills/` and can be invoked with `/skill-name`.
+The following native skills are defined in `skills/` and can be invoked with `/skill-name`.
+The methodology skills (brainstorming, plans, TDD, etc.) live upstream in the Superpowers
+plugin — install with `/plugin install superpowers@claude-plugins-official`.
 
-**Pipeline skills (Superpowers methodology, MIT attributed):**
-
-| Skill | Command | Purpose |
-|-------|---------|---------|
-| brainstorming | `/brainstorming` | Collaborative design → spec (hard gate before any implementation) |
-| writing-plans | `/writing-plans` | Break an approved spec into bite-sized tasks |
-| subagent-dev | `/subagent-dev` | Execute a plan with fresh subagent per task + two-stage review |
-| systematic-debugging | `/systematic-debugging` | 4-phase root-cause debugging (reproduce → isolate → fix → verify) |
-| finish-branch | `/finish-branch` | Complete work: merge / PR / keep / discard + worktree cleanup |
-| using-worktrees | `/using-worktrees` | Create isolated git worktree with safety verification |
-| tdd-loop | `/tdd-loop` | Strict Red-Green-Refactor with iron-law enforcement |
-| tdd-loop-lite | `/tdd-loop-lite` | Simpler TDD loop (pre-integration version, kept for flexibility) |
-
-**ClaudeMaxPower native skills:**
+**ClaudeMaxPower native skills (8):**
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
@@ -105,8 +101,16 @@ The following skills are defined in `skills/` and can be invoked with `/skill-na
 | fix-issue | `/fix-issue` | Fix a GitHub issue end-to-end |
 | review-pr | `/review-pr` | Full PR review workflow |
 | refactor-module | `/refactor-module` | Safe module refactor with tests |
-| pre-commit | `/pre-commit` | Intelligent pre-commit checks |
 | generate-docs | `/generate-docs` | Auto-generate docs from code |
+| gen-commit-message | `/gen-commit-message` | Read staged diff, propose Conventional Commits message |
+| superpowers-redirect | `/superpowers-redirect` | Catches old `/brainstorming`-style commands and routes to canonical `/superpowers:*` |
+
+Reference content for the larger skills lives in `skills/references/` (progressive
+disclosure — Claude reads these on demand, not on every session start).
+
+The deterministic pre-commit checks (secret scan, debug-statement scan, large-file warning,
+linter) now run automatically via `.claude/hooks/pre-commit-check.sh` — no skill invocation
+needed before `git commit`.
 
 ## Agents Available
 

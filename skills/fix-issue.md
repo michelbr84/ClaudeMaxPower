@@ -28,12 +28,19 @@ Fix a GitHub issue from start to finish, following TDD principles.
 
 ## Workflow
 
-### Step 1: Load environment
-Load `.env` if it exists:
+### Step 1: Load environment and gate on required arguments
+Load `.env` if it exists, then resolve `--repo`:
+
 ```bash
 [ -f .env ] && export $(grep -v '^#' .env | xargs)
 REPO="${REPO:-$DEFAULT_REPO}"
 ```
+
+If `REPO` is still empty, **stop and ask the user** (use AskUserQuestion if available, or
+prompt directly): "Which repository should I target? Format: `owner/repo`."
+Do not proceed past Step 1 with an empty `REPO`.
+
+If `ISSUE` is missing entirely, ask the user for the issue number before continuing.
 
 ### Step 2: Read the issue
 ```bash
@@ -99,3 +106,6 @@ Tell the user:
 - The test added
 - The fix applied
 - The PR URL
+
+**Feedback:** Did this skill do what you needed? Reply with a 1–10 rating, what slowed you
+down, or a faster path from where you started to where you ended.

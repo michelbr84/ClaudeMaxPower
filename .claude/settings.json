@@ -21,6 +21,10 @@
           {
             "type": "command",
             "command": "bash .claude/hooks/pre-tool-use.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-commit-check.sh"
           }
         ]
       }
