@@ -5,9 +5,9 @@ A minimal Python CLI todo list with **3 intentional bugs** — used as a testbed
 ## Purpose
 
 This app exists to demonstrate:
-- `fix-issue` skill — fixing GitHub issues with TDD
-- `tdd-loop` skill — adding new features test-first
-- `pre-commit` skill — catching issues before committing
+- `/fix-issue` skill — fixing GitHub issues with TDD
+- `/superpowers:test-driven-development` (upstream Superpowers) — adding new features test-first
+- the `pre-commit-check.sh` hook — catches secrets / debug code / large files automatically before every `git commit`, with `/gen-commit-message` for the message itself
 
 ## The Bugs (for skill demonstrations)
 
@@ -32,9 +32,12 @@ You'll see the 3 buggy tests fail. That's expected — use the skills to fix the
 # 1. Run fix-issue skill to fix bug #1
 /fix-issue --issue 1 --repo your-username/ClaudeMaxPower
 
-# 2. Run tdd-loop to add a "search tasks" feature
-/tdd-loop --spec "Add a search_tasks(query) function that returns tasks whose title contains the query string (case-insensitive)" --file src/todo.py
+# 2. Run the upstream Superpowers TDD loop to add a "search tasks" feature
+#    (one-time install: /plugin install superpowers@claude-plugins-official)
+/superpowers:test-driven-development "Add a search_tasks(query) function in src/todo.py that returns tasks whose title contains the query string (case-insensitive)"
 
-# 3. Run pre-commit before committing
-/pre-commit
+# 3. Commit — the pre-commit-check.sh hook runs automatically (secrets, debug
+#    statements, large files, linter). Use /gen-commit-message for the message.
+/gen-commit-message
+git commit
 ```

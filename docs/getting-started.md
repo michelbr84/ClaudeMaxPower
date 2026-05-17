@@ -86,27 +86,39 @@ new project.
 
 ### Try the pipeline on a feature
 
+The pipeline skills live upstream in the Superpowers plugin. Install once with
+`/plugin install superpowers@claude-plugins-official`, then:
+
 ```bash
 # 1. Brainstorm the design (hard gate: produces an approved spec)
-/brainstorming --topic "task search"
+/superpowers:brainstorming "task search"
 
 # 2. Break the spec into bite-sized tasks
-/writing-plans --spec docs/specs/2026-04-17-task-search-design.md
+/superpowers:writing-plans docs/specs/2026-04-17-task-search-design.md
 
 # 3. Execute with fresh subagents + two-stage review
-/subagent-dev --plan docs/plans/2026-04-17-task-search-plan.md
+/superpowers:subagent-driven-development docs/plans/2026-04-17-task-search-plan.md
 
 # 4. Finish: merge, PR, or keep
-/finish-branch
+/superpowers:finishing-a-development-branch
 ```
+
+If you forget the prefix and type the legacy unqualified name (`/brainstorming`,
+`/tdd-loop`, etc.) the `/superpowers-redirect` skill catches it and tells you the
+canonical command.
 
 ### Or try a single-purpose skill
 
 ```bash
-/pre-commit
+/gen-commit-message
 ```
 
-This runs a pre-commit check on your staged files. Since you're in a fresh clone with nothing staged, it will tell you nothing is staged — that's correct.
+This reads `git diff --staged` and proposes a Conventional Commits message. Since you're
+in a fresh clone with nothing staged, it will tell you nothing is staged — that's correct.
+
+(The deterministic pre-commit checks — secrets, debug statements, large files, linter — run
+automatically via the `pre-commit-check.sh` hook on every `git commit`; no skill invocation
+needed.)
 
 ### Run the example tests
 

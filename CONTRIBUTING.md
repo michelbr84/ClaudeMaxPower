@@ -14,7 +14,9 @@ before opening a non-trivial PR.
 
 - **Report a bug** — open a GitHub issue using the `bug_report` template.
 - **Propose a feature or new skill** — open an issue using the `feature_request` template
-  and, ideally, run `/brainstorming` to produce a spec before writing code.
+  and, ideally, run `/superpowers:brainstorming` to produce a spec before writing code
+  (install the Superpowers plugin with `/plugin install superpowers@claude-plugins-official`
+  if you haven't already).
 - **Improve docs** — small fixes (typos, broken links, clarifications) are welcome as
   direct PRs. Larger structural changes deserve an issue first.
 - **Report a security issue** — do **not** use public issues. See [`SECURITY.md`](SECURITY.md).
@@ -44,13 +46,19 @@ and is the fastest way to verify your environment is correctly wired before you 
 ClaudeMaxPower is built around a deliberate pipeline. Please follow it for anything that
 isn't a one-line fix:
 
+The pipeline lives upstream in the Superpowers plugin (install once with
+`/plugin install superpowers@claude-plugins-official`):
+
 ```
-/brainstorming  → docs/specs/YYYY-MM-DD-<topic>-design.md   (hard gate: spec must be approved)
-/writing-plans  → docs/plans/YYYY-MM-DD-<topic>-plan.md     (bite-sized tasks)
-/using-worktrees → isolated branch workspace
-/subagent-dev   → fresh subagent per task + two-stage review
-/finish-branch  → merge / PR / keep / discard
+/superpowers:brainstorming                      → docs/specs/YYYY-MM-DD-<topic>-design.md   (hard gate: spec must be approved)
+/superpowers:writing-plans                      → docs/plans/YYYY-MM-DD-<topic>-plan.md     (bite-sized tasks)
+/superpowers:using-git-worktrees                → isolated branch workspace
+/superpowers:subagent-driven-development        → fresh subagent per task + two-stage review
+/superpowers:finishing-a-development-branch     → merge / PR / keep / discard
 ```
+
+If you type one of the legacy unqualified names (`/brainstorming`, `/writing-plans`, …)
+the `/superpowers-redirect` skill catches it and points you at the canonical command.
 
 Trivial changes (typos, obvious one-liners, formatting) are exempt from the spec gate. A
 change is "trivial" when a reviewer would not ask "why?" about it.
@@ -63,11 +71,11 @@ These apply to every PR:
    `/superpowers:test-driven-development` for any new behavior — write the test, watch it
    fail, write the minimal code to pass. (Install the Superpowers plugin with
    `/plugin install superpowers@claude-plugins-official` if you haven't already.)
-2. **No implementation without an approved spec.** Use `/brainstorming` for non-trivial
-   work and link the spec from your PR.
-3. **No fixes without root-cause investigation.** Use `/systematic-debugging` for any bug
-   whose cause isn't immediately obvious. A patch that makes the symptom disappear without
-   explaining why the symptom appeared is provisional at best.
+2. **No implementation without an approved spec.** Use `/superpowers:brainstorming` for
+   non-trivial work and link the spec from your PR.
+3. **No fixes without root-cause investigation.** Use `/superpowers:systematic-debugging`
+   for any bug whose cause isn't immediately obvious. A patch that makes the symptom
+   disappear without explaining why the symptom appeared is provisional at best.
 4. **No merging with failing tests.** CI must be green before merge.
 
 ## Coding conventions
