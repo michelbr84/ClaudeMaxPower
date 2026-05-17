@@ -33,9 +33,12 @@ fi
 # Session state file
 echo ""
 if [ -f ".estado.md" ]; then
-  echo -e "${GREEN}Previous session state found (.estado.md):${NC}"
+  # Show only the 3 most recent session entries. The full file accumulates
+  # indefinitely; loading all of it into context on every session is wasteful.
+  # `awk` slices at the first 3 "## Session:" headers.
+  echo -e "${GREEN}Previous session state found (.estado.md, most recent 3):${NC}"
   echo "---"
-  cat .estado.md
+  awk '/^## Session:/ {n++} n>3 {exit} {print}' .estado.md
   echo "---"
 else
   echo "No previous session state (.estado.md not found). Starting fresh."

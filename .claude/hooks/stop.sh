@@ -19,8 +19,12 @@ echo "[stop hook] Saving session state to $ESTADO_FILE..."
 # Claude Code will have already written a summary to CLAUDE_STOP_HOOK_SUMMARY if available
 SUMMARY="${CLAUDE_STOP_HOOK_SUMMARY:-}"
 
+# Skip empty summaries entirely. Writing a placeholder on every session end
+# accumulates noise (89 such entries in this repo's history) that session-start.sh
+# then loads back into context. A session with nothing to record is fine.
 if [ -z "$SUMMARY" ]; then
-  SUMMARY="Session ended at $TIMESTAMP. No summary provided."
+  echo -e "${YELLOW}[stop hook] No summary provided — skipping write to $ESTADO_FILE.${NC}"
+  exit 0
 fi
 
 # Prepend new entry (most recent first)
