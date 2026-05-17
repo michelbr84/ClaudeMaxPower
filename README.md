@@ -36,7 +36,7 @@ claude
 /max-power
 
 # Or jump straight to your goal:
-/brainstorming --topic "new feature"
+/superpowers:brainstorming "new feature"   # requires: /plugin install superpowers@claude-plugins-official
 /fix-issue --issue 1 --repo michelbr84/ClaudeMaxPower
 /assemble-team --mode new-project --description "REST API for task management"
 ```
@@ -135,9 +135,9 @@ ClaudeMaxPower/
 | **Auto Dream** | Background memory consolidation — prunes stale entries, rebuilds index |
 | **Layered CLAUDE.md** | Project-wide + subfolder-specific Claude instructions with `@imports` |
 | **Hooks** | Auto-run tests after edits, block dangerous commands, save session state |
-| **Strict TDD** | Iron-law TDD (`/tdd-loop`) plus lite option (`/tdd-loop-lite`) for flexibility |
-| **Systematic Debugging** | 4-phase root-cause process — never patch a symptom |
-| **Git Worktree Isolation** | Safe parallel development with `/using-worktrees` and `/finish-branch` |
+| **Strict TDD** | Iron-law TDD via `/superpowers:test-driven-development` (install the Superpowers plugin) |
+| **Systematic Debugging** | 4-phase root-cause process via `/superpowers:systematic-debugging` — never patch a symptom |
+| **Git Worktree Isolation** | Safe parallel development with `/superpowers:using-git-worktrees` and `/superpowers:finishing-a-development-branch` |
 | **Sub-Agents** | Specialized agents (code reviewer, security auditor, doc writer, team coordinator) |
 | **Batch Workflows** | Fix multiple issues, mass-refactor, Writer/Reviewer pattern with worktrees |
 | **MCP Integrations** | Claude reads GitHub issues and Sentry errors directly |
@@ -181,10 +181,10 @@ for the merged pipeline, decision tables, and migration notes.
 
 **Four Iron Laws** enforced by the skills:
 
-1. No production code without a failing test first (`/tdd-loop`)
-2. No implementation without an approved spec (`/brainstorming` hard gate)
-3. No fixes without root-cause investigation (`/systematic-debugging`)
-4. No merging with failing tests (`/finish-branch` verification)
+1. No production code without a failing test first (`/superpowers:test-driven-development`)
+2. No implementation without an approved spec (`/superpowers:brainstorming` hard gate)
+3. No fixes without root-cause investigation (`/superpowers:systematic-debugging`)
+4. No merging with failing tests (`/superpowers:finishing-a-development-branch` verification)
 
 Attribution: see [`ATTRIBUTION.md`](ATTRIBUTION.md).
 
@@ -196,16 +196,21 @@ Invoke any skill with `/skill-name [arguments]` inside Claude Code.
 
 **Pipeline skills (Superpowers methodology):**
 
+Install once with `/plugin install superpowers@claude-plugins-official`. The methodology
+skills then live under the `/superpowers:` namespace.
+
 | Skill | Command | Description |
 |-------|---------|-------------|
-| Brainstorming | `/brainstorming --topic "user-auth"` | Collaborative design → spec (hard gate) |
-| Writing Plans | `/writing-plans --spec docs/specs/...md` | Break spec into bite-sized tasks |
-| Subagent Dev | `/subagent-dev --plan docs/plans/...md` | Fresh subagent per task + two-stage review |
-| Systematic Debugging | `/systematic-debugging --issue "..."` | 4-phase root-cause process |
-| Finish Branch | `/finish-branch` | Merge / PR / keep / discard + worktree cleanup |
-| Using Worktrees | `/using-worktrees --branch feat/xxx` | Safe isolated git worktree |
-| TDD Loop | `/tdd-loop --spec "..." --file path` | Strict Red-Green-Refactor with iron law |
-| TDD Loop (Lite) | `/tdd-loop-lite --spec "..." --file path` | Simpler TDD loop (pre-integration version) |
+| Brainstorming | `/superpowers:brainstorming "user-auth"` | Collaborative design → spec (hard gate) |
+| Writing Plans | `/superpowers:writing-plans <spec-file>` | Break spec into bite-sized tasks |
+| Subagent Dev | `/superpowers:subagent-driven-development <plan>` | Fresh subagent per task + two-stage review |
+| Systematic Debugging | `/superpowers:systematic-debugging "..."` | 4-phase root-cause process |
+| Finish Branch | `/superpowers:finishing-a-development-branch` | Merge / PR / keep / discard + worktree cleanup |
+| Using Worktrees | `/superpowers:using-git-worktrees` | Safe isolated git worktree |
+| TDD | `/superpowers:test-driven-development` | Strict Red-Green-Refactor with iron law |
+
+If you type one of the legacy unqualified names (`/brainstorming`, `/tdd-loop`, etc.) the
+`/superpowers-redirect` skill catches it and points you at the canonical command.
 
 **ClaudeMaxPower native skills:**
 
@@ -216,8 +221,9 @@ Invoke any skill with `/skill-name [arguments]` inside Claude Code.
 | Fix Issue | `/fix-issue --issue 1 --repo owner/repo` | Read issue → failing test → fix → PR |
 | Review PR | `/review-pr --pr 42 --repo owner/repo` | Structured review → post comment via gh |
 | Refactor Module | `/refactor-module --file src/foo.py --goal "..."` | Safe refactor with test baseline |
-| Pre-Commit | `/pre-commit` | Scan staged files for secrets, debug code, style |
+| Gen Commit Message | `/gen-commit-message` | Read staged diff, propose a Conventional Commits message (the deterministic secret / debug / large-file / linter checks now run automatically via the `pre-commit-check.sh` hook) |
 | Generate Docs | `/generate-docs --dir src/` | Auto-generate API docs from source |
+| Superpowers Redirect | `/superpowers-redirect` | Catches legacy `/brainstorming`-style names and points you at the canonical `/superpowers:*` |
 
 ---
 
@@ -303,7 +309,9 @@ MIT — see [LICENSE](LICENSE)
 
 1. Fork the repo
 2. Create a branch: `git checkout -b feat/your-feature`
-3. Run `/pre-commit` before committing
+3. `git commit` — the `pre-commit-check.sh` hook automatically scans staged changes for
+   secrets (blocking), debug statements, large files, and linter issues (warnings); use
+   `/gen-commit-message` if you want help drafting a Conventional Commits message
 4. Open a PR — the `review-pr` skill will help review it
 
 Issues and ideas welcome at [GitHub Issues](https://github.com/michelbr84/ClaudeMaxPower/issues).

@@ -33,11 +33,11 @@ core superpower — it turns Claude from a solo assistant into a coordinated eng
 
 ### Step 0: Brainstorming gate (spec check)
 
-**No implementation until spec is approved — this is the same hard gate enforced by `/brainstorming`.**
+**No implementation until spec is approved — this is the same hard gate enforced by `/superpowers:brainstorming`.**
 
 Before analyzing the project or composing any team, verify that the work has been scoped.
 
-**For `new-project` mode:** a design spec MUST exist under `docs/specs/`. If none exists, stop and instruct the user to run `/brainstorming --topic <feature>` first. This is a hard gate — do not proceed, do not spawn agents, do not plan tasks.
+**For `new-project` mode:** a design spec MUST exist under `docs/specs/`. If none exists, stop and instruct the user to run `/superpowers:brainstorming <feature>` first (install the Superpowers plugin with `/plugin install superpowers@claude-plugins-official` if not already installed). This is a hard gate — do not proceed, do not spawn agents, do not plan tasks.
 
 ```bash
 ls docs/specs/*-design.md 2>/dev/null
@@ -46,7 +46,7 @@ ls docs/specs/*-design.md 2>/dev/null
 - If the command returns one or more files, read the most recent design spec and use it as the source of truth for Step 2 onwards.
 - If the command returns nothing, respond to the user with:
 
-  > No design spec found in `docs/specs/`. Run `/brainstorming --topic <feature>` first to produce an approved spec, then re-run `/assemble-team`.
+  > No design spec found in `docs/specs/`. Run `/superpowers:brainstorming <feature>` first to produce an approved spec, then re-run `/assemble-team`. (Install the Superpowers plugin with `/plugin install superpowers@claude-plugins-official` if it isn't already installed.)
 
   Then stop. Do not continue to Step 1.
 
