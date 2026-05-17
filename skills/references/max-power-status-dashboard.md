@@ -14,7 +14,6 @@ Skills loaded      assemble-team, fix-issue, gen-commit-message, generate-docs,
                    max-power, refactor-module, review-pr, superpowers-redirect
 Hooks active       session-start, pre-tool-use, pre-commit-check, post-tool-use, stop
 Agent teams        enabled (CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
-Auto Dream         configured (trigger: 24h + 5 sessions)
 Superpowers plugin <installed | not installed>
 Environment        <.env ok | .env missing placeholders>
 Next action        <recommended skill from Step 6>

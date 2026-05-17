@@ -230,7 +230,7 @@ Native ClaudeMaxPower entry points:
   /superpowers-redirect            (when you type an old /brainstorming-style command)
 
 Governance hooks (auto-fire, no invocation needed):
-  - session-start hook       context restore + Auto Dream
+  - session-start hook       context restore (reads .estado.md)
   - pre-tool-use hook        blocks dangerous commands
   - pre-commit-check hook    secret/debug/large-file/linter scan before git commit
   - post-tool-use hook       auto-run tests on edit
@@ -265,9 +265,7 @@ so the field list and skill/hook inventories can be updated independently of thi
 - Skills: [`docs/skills-guide.md`](../docs/skills-guide.md)
 - Agents: [`docs/agents-guide.md`](../docs/agents-guide.md)
 - Agent teams: [`docs/agent-teams-guide.md`](../docs/agent-teams-guide.md)
-- Auto Dream: [`docs/auto-dream-guide.md`](../docs/auto-dream-guide.md)
 - Batch workflows: [`docs/batch-workflows.md`](../docs/batch-workflows.md)
-- Copy-paste bootstrap prompt: [`docs/bootstrap-prompt.md`](../docs/bootstrap-prompt.md)
 
 ## Success criteria
 

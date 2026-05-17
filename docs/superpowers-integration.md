@@ -13,16 +13,16 @@ approach to building software with an AI collaborator. With over 157k stars on G
 time of this writing, it has become a reference point for structured Claude workflows.
 
 ClaudeMaxPower is a GitHub template that turns Claude Code into a coordinated AI engineering
-team. It ships with hooks (session-start, pre-tool-use, post-tool-use, stop), a skill library
-(`/fix-issue`, `/review-pr`, `/refactor-module`, `/pre-commit`, `/generate-docs`), specialized
-agents (`code-reviewer`, `security-auditor`, `doc-writer`, `team-coordinator`), Auto Dream
-memory consolidation, and Agent Teams (`/assemble-team`) with two operating modes:
-new-project and existing-project.
+team. It ships with hooks (session-start, pre-tool-use, pre-commit-check, post-tool-use, stop),
+a skill library (`/fix-issue`, `/review-pr`, `/refactor-module`, `/gen-commit-message`,
+`/generate-docs`), specialized agents (`code-reviewer`, `security-auditor`, `doc-writer`,
+`team-coordinator`), and Agent Teams (`/assemble-team`) with two operating modes: new-project
+and existing-project.
 
 The two projects merge naturally. Superpowers contributes a methodology — how work flows from
 idea to merged branch, with gates at each stage. ClaudeMaxPower contributes infrastructure —
-hooks, memory consolidation, team orchestration, and batch workflows. Integrating them gives
-a single template that enforces rigorous practice while automating the mechanical work around it.
+hooks, team orchestration, and batch workflows. Integrating them gives a single template that
+enforces rigorous practice while automating the mechanical work around it.
 
 The integration approach is to adapt and inline the relevant Superpowers skills directly into
 the ClaudeMaxPower repository. This keeps the template self-contained (no submodules, no
@@ -237,25 +237,23 @@ This rule is itself an iron-law variant of law #3 (no fixes without root-cause
 investigation), applied to the special case where the "report" comes from another
 LLM session rather than a human bug report.
 
-## 7. Memory Integration
+## 7. Session State Handoff
 
-Superpowers methodology interacts with ClaudeMaxPower's Auto Dream memory consolidation in
-predictable ways:
+Across sessions, ClaudeMaxPower preserves state through two mechanisms:
 
-- **Brainstorming decisions become project memories.** When a `/brainstorming` session lands
-  on a significant design decision ("we use JWT for auth, not sessions"), the decision is
-  recorded as a project-scoped memory. Auto Dream keeps these consolidated and deduplicated.
-- **Post-review feedback becomes feedback memories.** When `/subagent-dev`'s two-stage review
-  produces actionable feedback (style preferences, naming conventions, missing test patterns),
-  that feedback is captured for reuse in later sessions.
-- **Spec and plan file paths become reference memories.** The memory index tracks where the
-  current spec and plan live, so future sessions can resume without re-asking.
-- **Auto Dream prunes stale spec references.** Specs from archived or merged branches become
-  noise in memory. Auto Dream's staleness check flags them. Files older than 30 days or
-  references to branches that no longer exist are candidates for removal.
+- **`.estado.md`** is written by the `stop` hook at the end of each session and read by the
+  `session-start` hook at the beginning of the next one. The session-start hook surfaces only
+  the three most recent entries to keep the loaded context small; older entries remain in the
+  file for reference.
+- **Claude Code's own auto-memory** (under the user-level memory directory) is the canonical
+  store for user, feedback, project, and reference memories. ClaudeMaxPower does not maintain
+  a separate memory store and does not run any background consolidation process — anything you
+  see described elsewhere as "Auto Dream" is unbuilt and has been retired from the docs.
 
-Memory consolidation runs at session start when both conditions are met: 24+ hours since the
-last dream, and 5+ sessions since the last dream. See `docs/auto-dream-guide.md` for details.
+Superpowers methodology integrates with this in the obvious way: brainstorming outcomes land
+in `docs/specs/`, plans land in `docs/plans/`, the session summary that names them is written
+to `.estado.md`, and Claude Code's auto-memory captures durable user and project notes
+on its own schedule.
 
 ## 8. Hook Interactions
 
@@ -286,7 +284,7 @@ methodology runs.
 | Spec gate                 | Yes (`/brainstorming`)  | No                        | Yes, enforced in new-project mode     |
 | TDD rigor                 | Strict (iron law)       | Optional (`/tdd-loop-lite`)| Strict (`/tdd-loop`) + lite available|
 | Agent teams               | No                      | Yes (`/assemble-team`)    | Yes, with brainstorming gate          |
-| Memory consolidation      | No                      | Yes (Auto Dream)          | Yes, Superpowers-aware                |
+| Session-state handoff     | No                      | Yes (`.estado.md`)        | Yes (`.estado.md` + Claude Code auto-memory) |
 | Hooks (session/pre/post/stop) | No                  | Yes                       | Yes                                   |
 | Worktrees                 | Yes (`/using-worktrees`)| Partial (`parallel-review.sh`)| Yes (`/using-worktrees` + scripts)|
 | Two-stage review          | Yes (`/subagent-dev`)   | No                        | Yes                                   |
@@ -317,7 +315,7 @@ If you were using ClaudeMaxPower before this integration, here is what to expect
 - **New skills are additive.** `/brainstorming`, `/writing-plans`, `/subagent-dev`,
   `/systematic-debugging`, `/finish-branch`, and `/using-worktrees` are all new and do not
   interfere with existing workflows.
-- **Hooks, agents, Auto Dream, and workflow scripts are unchanged.** Your existing
+- **Hooks, agents, and workflow scripts are unchanged.** Your existing
   `.claude/settings.json`, `.claude/agents/`, and `workflows/` remain compatible.
 
 No manual migration steps are required. Pull the new version of the template and existing
@@ -335,12 +333,10 @@ adapted skills intact inherits the attribution requirement automatically.
 
 - obra/superpowers — [https://github.com/obra/superpowers](https://github.com/obra/superpowers)
 - ClaudeMaxPower — [https://github.com/michelbr84/ClaudeMaxPower](https://github.com/michelbr84/ClaudeMaxPower)
-- Bootstrap prompt — `docs/bootstrap-prompt.md`
 - Hooks guide — `docs/hooks-guide.md`
 - Skills guide — `docs/skills-guide.md`
 - Agents guide — `docs/agents-guide.md`
 - Agent Teams guide — `docs/agent-teams-guide.md`
-- Auto Dream guide — `docs/auto-dream-guide.md`
 - Batch workflows — `docs/batch-workflows.md`
 - Individual skill files in `skills/`
 - Attribution and license — `ATTRIBUTION.md`

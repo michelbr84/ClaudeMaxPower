@@ -3,7 +3,7 @@
 **Turn Claude Code into a coordinated AI engineering team — with the full Superpowers methodology built in.**
 
 ClaudeMaxPower is a GitHub template that transforms Claude from a solo assistant into a full
-AI engineering team — with hooks, skills, persistent memory, Auto Dream memory consolidation,
+AI engineering team — with hooks, skills, persistent session state (via `.estado.md`),
 and an integrated adaptation of the obra/superpowers methodology (brainstorm → spec → plan →
 subagent-driven development with strict TDD → two-stage review → finish).
 
@@ -40,12 +40,6 @@ claude
 /fix-issue --issue 1 --repo michelbr84/ClaudeMaxPower
 /assemble-team --mode new-project --description "REST API for task management"
 ```
-
-### Already in a Claude session? Use the bootstrap prompt
-
-Copy the prompt from [`docs/bootstrap-prompt.md`](docs/bootstrap-prompt.md) into any Claude
-Code (or Cursor, Codex, Gemini) session — it will clone ClaudeMaxPower, install the
-optional Superpowers plugin, run setup, and present the pipeline menu.
 
 ---
 
@@ -113,11 +107,11 @@ ClaudeMaxPower/
 ├── CLAUDE.md              ← Project-wide Claude instructions (layered)
 ├── .claude/
 │   ├── settings.json      ← Hook config + Agent Teams enabled
-│   ├── hooks/             ← Automated guards, quality gates, Auto Dream
+│   ├── hooks/             ← Automated guards, quality gates, session state
 │   └── agents/            ← Specialized sub-agents with persistent memory
 ├── skills/                ← Reusable AI workflows (invoke with /skill-name)
 ├── workflows/             ← Batch automation scripts
-├── scripts/               ← Setup, verify, Auto Dream memory consolidation
+├── scripts/               ← Setup, verify, hook self-test, skill validation
 ├── mcp/                   ← MCP server configs (GitHub, Sentry)
 ├── examples/              ← Working demo projects
 └── docs/                  ← Detailed guides for every feature
@@ -132,7 +126,6 @@ ClaudeMaxPower/
 | **Superpowers Pipeline** | Brainstorm → spec → plan → subagent-driven dev → two-stage review → finish |
 | **One-Command Bootstrap** | `/max-power` installs, configures, and routes you to the right skill |
 | **Agent Teams** | Assemble coordinated teams of specialized agents with `/assemble-team` |
-| **Auto Dream** | Background memory consolidation — prunes stale entries, rebuilds index |
 | **Layered CLAUDE.md** | Project-wide + subfolder-specific Claude instructions with `@imports` |
 | **Hooks** | Auto-run tests after edits, block dangerous commands, save session state |
 | **Strict TDD** | Iron-law TDD (`/tdd-loop`) plus lite option (`/tdd-loop-lite`) for flexibility |
@@ -161,12 +154,6 @@ ClaudeMaxPower/
 │  │ (coordinator  │  │  (batch/      │  │  (GitHub/        │ │
 │  │  + teammates) │  │  parallel)    │  │   Sentry)        │ │
 │  └───────────────┘  └───────────────┘  └──────────────────┘ │
-│                                                               │
-│  ┌───────────────┐  ┌───────────────┐                        │
-│  │  Auto Dream   │  │   Memory      │                        │
-│  │  (consolidate │  │  (persistent  │                        │
-│  │   memories)   │  │   context)    │                        │
-│  └───────────────┘  └───────────────┘                        │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -269,9 +256,7 @@ Agents are invoked by Claude as sub-sessions with specialized roles.
 
 - [Getting Started](docs/getting-started.md) — prerequisites, setup, first run
 - **[Superpowers Integration](docs/superpowers-integration.md)** — merged pipeline, decision tables
-- **[Bootstrap Prompt](docs/bootstrap-prompt.md)** — copy-paste activation for any Claude session
 - [Agent Teams Guide](docs/agent-teams-guide.md) — assembling and coordinating agent teams
-- [Auto Dream Guide](docs/auto-dream-guide.md) — memory consolidation system
 - [Hooks Guide](docs/hooks-guide.md) — how hooks work, how to customize them
 - [Skills Guide](docs/skills-guide.md) — using and writing skills
 - [Agents Guide](docs/agents-guide.md) — sub-agents and persistent memory

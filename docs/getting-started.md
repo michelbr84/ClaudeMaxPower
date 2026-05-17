@@ -130,7 +130,6 @@ ls workflows/             # Batch scripts
 ## What to Read Next
 
 - [Superpowers Integration](superpowers-integration.md) — the merged pipeline and decision tables
-- [Bootstrap Prompt](bootstrap-prompt.md) — copy-paste activator for any Claude session
 - [Hooks Guide](hooks-guide.md) — understand what fires automatically
 - [Skills Guide](skills-guide.md) — learn to use and write skills
 - [Agents Guide](agents-guide.md) — specialized sub-agents
