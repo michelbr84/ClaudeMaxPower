@@ -18,6 +18,12 @@ from pathlib import Path
 SKILLS_DIR = Path("skills")
 CMD_DIR = Path(".claude/commands")
 
+# Signature of a wrapper this script previously generated. Used by the
+# stale-wrapper sweep to distinguish auto-generated wrappers from any
+# hand-written commands a user may have added to .claude/commands/.
+WRAPPER_SIGNATURE = "Read `skills/"
+WRAPPER_SIGNATURE_TAIL = "in this repository and execute its workflow verbatim."
+
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
 NAME_RE = re.compile(r"^name:\s*(\S+)\s*$", re.MULTILINE)
 DESC_RE = re.compile(r"^description:\s*(.+?)\s*$", re.MULTILINE)
@@ -84,17 +90,62 @@ def wrapper_text(skill_name: str, meta: dict) -> str:
     return "\n".join(lines)
 
 
+def is_generated_wrapper(path: Path) -> tuple[bool, str | None]:
+    """Return (is_wrapper, referenced_skill_name) for files this script emits.
+
+    Identifies wrappers by the literal body line the generator writes. Hand-written
+    commands without that signature are left untouched.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return (False, None)
+    if WRAPPER_SIGNATURE not in text or WRAPPER_SIGNATURE_TAIL not in text:
+        return (False, None)
+    m = re.search(r"Read `skills/([A-Za-z0-9_.-]+)\.md`", text)
+    return (True, m.group(1) if m else None)
+
+
+def sweep_stale_wrappers(current_skill_names: set[str]) -> int:
+    """Remove wrappers whose source skill no longer exists.
+
+    Only deletes files this script previously generated (signature match).
+    Returns the count removed.
+    """
+    if not CMD_DIR.is_dir():
+        return 0
+    removed = 0
+    for cmd_file in sorted(CMD_DIR.glob("*.md")):
+        is_wrapper, referenced = is_generated_wrapper(cmd_file)
+        if not is_wrapper:
+            continue
+        if referenced and referenced not in current_skill_names:
+            cmd_file.unlink()
+            removed += 1
+            print(f"  [RM] /{referenced} -> {cmd_file} (source skill removed)")
+    return removed
+
+
 def main() -> int:
     if not SKILLS_DIR.is_dir():
         print(f"error: {SKILLS_DIR}/ not found. Run from project root.", file=sys.stderr)
         return 1
 
     CMD_DIR.mkdir(parents=True, exist_ok=True)
-    written = 0
-    for skill_file in sorted(SKILLS_DIR.glob("*.md")):
+
+    skill_files = sorted(SKILLS_DIR.glob("*.md"))
+    skill_metas: list[tuple[str, dict]] = []
+    for skill_file in skill_files:
         text = skill_file.read_text(encoding="utf-8")
         meta = parse_frontmatter(text)
         name = meta.get("name") or skill_file.stem
+        skill_metas.append((name, meta))
+
+    current_names = {name for name, _ in skill_metas}
+    removed = sweep_stale_wrappers(current_names)
+
+    written = 0
+    for name, meta in skill_metas:
         out = CMD_DIR / f"{name}.md"
         # newline="\n" prevents Python from translating \n to \r\n on Windows.
         # The repo's .gitattributes enforces LF for *.md, so without this the
@@ -104,6 +155,8 @@ def main() -> int:
         print(f"  [OK] /{name} -> {out}")
 
     print(f"\nGenerated {written} slash-command wrappers in {CMD_DIR}/")
+    if removed:
+        print(f"Removed {removed} stale wrapper(s).")
     return 0
 
 
