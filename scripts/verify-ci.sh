@@ -207,16 +207,25 @@ else
 fi
 
 # --- 5. Structure ---
+# This list must stay in lock-step with .github/workflows/ci.yml's check-structure
+# job. Any file added/removed there should be mirrored here so a local green run
+# matches CI. The drift this script previously had (kept stale tdd-loop.md /
+# pre-commit.md while CI moved on to pre-commit-check.sh + gen-commit-message.md
+# + superpowers-redirect.md) caused a false `1 of 11 gating checks failed` on
+# clean main — the exact "local says red, CI says green" inversion this script
+# exists to prevent.
 sec "Verify Project Structure"
 REQUIRED=(
   "CLAUDE.md" "README.md" "LICENSE" ".env.example" ".gitignore"
   ".claude/settings.json"
   ".claude/hooks/session-start.sh" ".claude/hooks/pre-tool-use.sh"
-  ".claude/hooks/post-tool-use.sh" ".claude/hooks/stop.sh"
+  ".claude/hooks/post-tool-use.sh" ".claude/hooks/pre-commit-check.sh"
+  ".claude/hooks/stop.sh"
   ".claude/agents/code-reviewer.md" ".claude/agents/security-auditor.md"
   ".claude/agents/doc-writer.md"
   "skills/fix-issue.md" "skills/review-pr.md" "skills/refactor-module.md"
-  "skills/tdd-loop.md" "skills/pre-commit.md" "skills/generate-docs.md"
+  "skills/gen-commit-message.md" "skills/superpowers-redirect.md"
+  "skills/generate-docs.md"
   "workflows/batch-fix.sh" "workflows/parallel-review.sh"
   "workflows/mass-refactor.sh" "workflows/dependency-graph.sh"
   "mcp/github-config.json" "mcp/sentry-config.json"

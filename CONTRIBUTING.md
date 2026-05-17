@@ -59,8 +59,10 @@ change is "trivial" when a reviewer would not ask "why?" about it.
 
 These apply to every PR:
 
-1. **No production code without a failing test first.** Run `/tdd-loop` for any new
-   behavior — write the test, watch it fail, write the minimal code to pass.
+1. **No production code without a failing test first.** Run
+   `/superpowers:test-driven-development` for any new behavior — write the test, watch it
+   fail, write the minimal code to pass. (Install the Superpowers plugin with
+   `/plugin install superpowers@claude-plugins-official` if you haven't already.)
 2. **No implementation without an approved spec.** Use `/brainstorming` for non-trivial
    work and link the spec from your PR.
 3. **No fixes without root-cause investigation.** Use `/systematic-debugging` for any bug
@@ -119,7 +121,9 @@ Before opening a PR:
 
 - Branch off the latest `main` (`git fetch origin && git rebase origin/main` — only on
   branches you have not pushed yet, or use a merge if you have).
-- Run `/pre-commit` to scan for secrets, debug statements, and large files.
+- The `.claude/hooks/pre-commit-check.sh` hook runs automatically before every `git commit`
+  — it scans staged changes for secrets (blocking), debug statements, large files, and
+  linter issues (all warnings). No manual invocation needed; just run `git commit`.
 - Run any tests that touch your changes (`pytest examples/todo-app/tests/`,
   `bash scripts/test-hooks.sh`, `bash scripts/validate-skills.sh`).
 - Make sure `git status` is clean and you are committing only the intended files.

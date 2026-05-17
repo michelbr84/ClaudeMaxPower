@@ -74,8 +74,14 @@ for hook in session-start pre-tool-use post-tool-use stop; do
 done
 
 # Skills
+# Must match the REQUIRED list in .github/workflows/ci.yml (check-structure job).
+# /tdd-loop and /pre-commit were removed when the Superpowers methodology was
+# inlined and the deterministic pre-commit checks moved into a hook:
+#   - TDD lives upstream at /superpowers:test-driven-development
+#   - /pre-commit's deterministic part → .claude/hooks/pre-commit-check.sh
+#   - /pre-commit's LLM part         → skills/gen-commit-message.md
 section "Skills"
-for skill in fix-issue review-pr refactor-module tdd-loop pre-commit generate-docs; do
+for skill in fix-issue review-pr refactor-module gen-commit-message superpowers-redirect generate-docs; do
   f="skills/${skill}.md"
   if [ -f "$f" ]; then
     ok "$f: found"
@@ -105,13 +111,14 @@ fi
 
 # Python example tests
 # NOTE: examples/todo-app ships with 3 INTENTIONAL bugs as fixtures for the
-# /fix-issue, /tdd-loop, and /pre-commit skill demos. By default, failures here
-# are informational and do NOT count against installation verification.
-# Set VERIFY_STRICT_EXAMPLES=1 to treat them as hard failures (legacy behaviour).
+# /fix-issue skill demo and the upstream /superpowers:test-driven-development
+# loop. By default, failures here are informational and do NOT count against
+# installation verification. Set VERIFY_STRICT_EXAMPLES=1 to treat them as
+# hard failures (legacy behaviour).
 section "Example App (intentional bugs — informational)"
 if [ -d "examples/todo-app/tests" ]; then
   echo -e "${YELLOW}ℹ${NC} examples/todo-app contains 3 intentional bugs used to demonstrate"
-  echo -e "${YELLOW}ℹ${NC} the /fix-issue, /tdd-loop, and /pre-commit skills."
+  echo -e "${YELLOW}ℹ${NC} the /fix-issue skill and the TDD / pre-commit-hook workflow."
   echo -e "${YELLOW}ℹ${NC} See examples/todo-app/README.md and examples/todo-app/CLAUDE.md."
 
   if python3 -m pytest examples/todo-app/tests -q --tb=line 2>/dev/null; then
