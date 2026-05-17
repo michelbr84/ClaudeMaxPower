@@ -63,8 +63,8 @@ WARN_PATTERNS=(
   "pip3 install"
   "npm install"
   "npm ci"
-  "curl.*|.*sh"    # curl-to-shell installs
-  "wget.*|.*sh"
+  "curl.*\|.*sh"   # curl-to-shell installs (literal pipe; \| escapes ERE alternation)
+  "wget.*\|.*sh"
 )
 
 for pattern in "${WARN_PATTERNS[@]}"; do
