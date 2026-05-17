@@ -72,7 +72,10 @@ Record `CMP_INSTALLED=yes|no`.
 Count source files that are not part of ClaudeMaxPower:
 
 ```bash
-# Rough heuristic — count files outside .claude, skills, docs, scripts, workflows
+# Rough heuristic — count files outside .claude, skills, docs, scripts, workflows.
+# Use `*/X/*` (not `./X/*`) so nested vendor/build dirs are also excluded —
+# a project with sub-package node_modules or examples/.venv otherwise drowns
+# the count and forces a false `existing` classification.
 find . -type f \
   -not -path './.git/*' \
   -not -path './.claude/*' \
@@ -80,8 +83,12 @@ find . -type f \
   -not -path './docs/*' \
   -not -path './scripts/*' \
   -not -path './workflows/*' \
-  -not -path './node_modules/*' \
-  -not -path './.venv/*' \
+  -not -path '*/node_modules/*' \
+  -not -path '*/.venv/*' \
+  -not -path '*/__pycache__/*' \
+  -not -path '*/dist/*' \
+  -not -path '*/build/*' \
+  -not -path '*/target/*' \
   | wc -l
 ```
 
