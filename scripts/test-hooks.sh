@@ -197,7 +197,8 @@ assert_exit "exits 0 with summary" 0 "$rc"
 assert_file_contains "writes summary to workspace .estado.md" \
   "$WORKSPACE/.estado.md" "cmp-test-hooks: synthetic session"
 
-# 2. Missing summary → exit 0, file appended with default text
+# 2. Missing summary → exit 0, no write (placeholder entries used to flood
+#    .estado.md; now stop.sh skips silently when no real summary was provided).
 set +e
 unset CLAUDE_STOP_HOOK_SUMMARY
 bash .claude/hooks/stop.sh >/dev/null 2>&1
