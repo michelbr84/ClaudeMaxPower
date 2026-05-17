@@ -58,8 +58,7 @@ Examples of issues that ClaudeMaxPower considers in scope:
   `workflows/`, or `.claude/`.
 - A bypass of the `BLOCKED_PATTERNS` allow/deny list in `pre-tool-use.sh`
   that would let a clearly-malicious command through.
-- Supply-chain risks introduced by `scripts/setup.sh`, the bootstrap prompt,
-  or any auto-installed tool.
+- Supply-chain risks introduced by `scripts/setup.sh` or any auto-installed tool.
 
 ## Out of Scope
 
@@ -93,6 +92,5 @@ If you have installed ClaudeMaxPower into your own project:
 - Keep the hooks enabled and treat `pre-tool-use.sh`'s block-list as
   defense in depth, not the primary safety boundary
   (see `docs/hooks-guide.md`).
-- Run `bash scripts/test-hooks.sh` and `bash scripts/test-auto-dream.sh`
-  after customizing hooks or `auto-dream.sh`.
+- Run `bash scripts/test-hooks.sh` after customizing any hook script.
 - Prefer Claude Code's `plan` mode for risky or destructive work.

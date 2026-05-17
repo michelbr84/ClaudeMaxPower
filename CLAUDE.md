@@ -120,20 +120,12 @@ Specialized agents are defined in `.claude/agents/`:
 - `doc-writer` — documentation generation with user memory
 - `team-coordinator` — orchestrates agent teams with task dependencies
 
-## Auto Dream (Memory Consolidation)
-
-ClaudeMaxPower includes Auto Dream — a background process that consolidates memory files.
-It runs automatically via the session-start hook when 24+ hours and 5+ sessions have passed
-since the last consolidation. See `docs/auto-dream-guide.md` for details.
-
 ## Documentation References
 
 - @docs/hooks-guide.md
 - @docs/skills-guide.md
 - @docs/agents-guide.md
 - @docs/agent-teams-guide.md
-- @docs/auto-dream-guide.md
 - @docs/batch-workflows.md
 - @docs/superpowers-integration.md
-- @docs/bootstrap-prompt.md
 - @ATTRIBUTION.md
