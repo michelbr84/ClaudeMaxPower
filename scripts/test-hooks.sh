@@ -144,7 +144,7 @@ for benign in "bash scripts/setup.sh" "ssh user@host" "git push" "git fetch orig
     pass=$((pass + 1))
   else
     echo -e "  ${RED}[FAIL]${NC} false-positive WARN for '$benign'"
-    echo "$out" | sed 's/^/      /'
+    echo "$out" | awk '{print "      " $0}'
     fail=$((fail + 1))
   fi
 done
