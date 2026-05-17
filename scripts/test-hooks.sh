@@ -7,11 +7,14 @@
 # .estado.md, or any project file. git status must remain clean after exit.
 #
 # What is tested:
-#   pre-tool-use.sh   — allows benign commands; blocks `rm -rf /` and
-#                       force-push-to-main.
-#   post-tool-use.sh  — exits 0 when the file path is empty or non-source.
-#   stop.sh           — appends to .estado.md inside the isolated tree only.
-#   session-start.sh  — runs cleanly outside a git repo (no .git present).
+#   pre-tool-use.sh      — allows benign commands; blocks `rm -rf /` and
+#                          force-push-to-main.
+#   pre-commit-check.sh  — silent exit 0 for non-`git commit`; blocks on
+#                          staged secrets; warns (does not block) on debug
+#                          statements.
+#   post-tool-use.sh     — exits 0 when the file path is empty or non-source.
+#   stop.sh              — appends to .estado.md inside the isolated tree only.
+#   session-start.sh     — runs cleanly outside a git repo (no .git present).
 #
 # What is NOT tested:
 #   Whether Claude Code itself fires the hooks at the right moment. That
@@ -42,8 +45,14 @@ if [ ! -d "$HOOKS_DIR" ]; then
 fi
 
 # Snapshot the working-tree state so we can detect mutation at the end.
+# A clean tree produces an empty snapshot — that's still a valid baseline, so
+# track "is this a git repo" with a separate flag rather than inferring it from
+# the snapshot being non-empty (which would silently skip the guard on a clean
+# main branch — exactly when we most want it to run).
+IN_GIT_REPO=0
 WORKTREE_SNAPSHOT=""
 if git -C "$REPO_ROOT" rev-parse --is-inside-work-tree &>/dev/null; then
+  IN_GIT_REPO=1
   WORKTREE_SNAPSHOT="$(git -C "$REPO_ROOT" status --porcelain)"
 fi
 
@@ -163,6 +172,85 @@ else
   fail=$((fail + 1))
 fi
 
+# ── pre-commit-check.sh ─────────────────────────────────────────────────────
+echo ""
+note "pre-commit-check.sh"
+
+# All tests run inside a throwaway git repo so staging real secrets / debug
+# statements never touches the real working tree.
+PC_REPO="$CMP_TMPDIR/pc-repo"
+mkdir -p "$PC_REPO"
+(
+  cd "$PC_REPO"
+  git init -q
+  git config user.email "test@cmp.local"
+  git config user.name "cmp-test"
+)
+cp "$HOOKS_DIR/pre-commit-check.sh" "$PC_REPO/hook.sh"
+chmod +x "$PC_REPO/hook.sh"
+
+# 1. Non-`git commit` command → silent exit 0 (the matcher fires on every Bash
+#    invocation, so the hook must filter internally).
+set +e
+out=$(cd "$PC_REPO" && CLAUDE_TOOL_INPUT_COMMAND="ls -la" bash ./hook.sh 2>&1)
+rc=$?
+set -e
+if [ "$rc" = "0" ] && [ -z "$out" ]; then
+  echo -e "  ${GREEN}[PASS]${NC} silent exit 0 for non-'git commit' command"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} non-'git commit' command should pass silently (rc=$rc, out='$out')"
+  fail=$((fail + 1))
+fi
+
+# 2. `git commit` with no staged changes → exit 0 (let git's own "nothing to
+#    commit" message handle it).
+set +e
+(cd "$PC_REPO" && CLAUDE_TOOL_INPUT_COMMAND="git commit -m x" bash ./hook.sh >/dev/null 2>&1)
+rc=$?
+set -e
+assert_exit "exits 0 when nothing staged" 0 "$rc"
+
+# 3. `git commit` with a staged secret → blocking exit 1.
+set +e
+(
+  cd "$PC_REPO"
+  echo 'api_key=sk_live_realtokenvalue_123abc' > secret.txt
+  git add secret.txt
+)
+out=$(cd "$PC_REPO" && CLAUDE_TOOL_INPUT_COMMAND="git commit -m x" bash ./hook.sh 2>&1)
+rc=$?
+set -e
+if [ "$rc" = "1" ] && echo "$out" | grep -q "BLOCKED: possible secret"; then
+  echo -e "  ${GREEN}[PASS]${NC} blocks on staged secret"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} should block on staged secret (rc=$rc)"
+  echo "$out" | awk '{print "      " $0}'
+  fail=$((fail + 1))
+fi
+# Reset staged state for next checks.
+(cd "$PC_REPO" && git rm -f --cached secret.txt >/dev/null 2>&1 && rm -f secret.txt)
+
+# 4. `git commit` with a debug statement → warns but does not block.
+set +e
+(
+  cd "$PC_REPO"
+  echo 'console.log("debug")' > debug.js
+  git add debug.js
+)
+out=$(cd "$PC_REPO" && CLAUDE_TOOL_INPUT_COMMAND="git commit -m x" bash ./hook.sh 2>&1)
+rc=$?
+set -e
+if [ "$rc" = "0" ] && echo "$out" | grep -q "WARNING: debug statements detected"; then
+  echo -e "  ${GREEN}[PASS]${NC} warns (does not block) on debug statement"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} should warn-and-pass on debug statement (rc=$rc)"
+  echo "$out" | awk '{print "      " $0}'
+  fail=$((fail + 1))
+fi
+
 # ── post-tool-use.sh ────────────────────────────────────────────────────────
 echo ""
 note "post-tool-use.sh"
@@ -222,7 +310,7 @@ echo ""
 note "Working-tree mutation guard"
 
 cd "$REPO_ROOT"
-if [ -n "$WORKTREE_SNAPSHOT" ]; then
+if [ "$IN_GIT_REPO" = "1" ]; then
   CURRENT_SNAPSHOT="$(git status --porcelain)"
   if [ "$CURRENT_SNAPSHOT" = "$WORKTREE_SNAPSHOT" ]; then
     echo -e "  ${GREEN}[PASS]${NC} repo working tree unchanged"
