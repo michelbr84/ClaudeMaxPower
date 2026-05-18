@@ -1,6 +1,7 @@
 ---
 name: superpowers-redirect
 description: Use when user types /brainstorming, /writing-plans, /subagent-dev, /tdd-loop, /systematic-debugging, /using-worktrees, or /finish-branch — these moved to the Superpowers plugin. Routes the user to the canonical /superpowers:* command.
+user-invocable: false
 arguments: []
 allowed-tools:
   - Read

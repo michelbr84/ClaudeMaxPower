@@ -1,6 +1,7 @@
 ---
 name: max-power
 description: One-command activation — installs ClaudeMaxPower, offers Superpowers plugin install, presents capabilities menu, and routes the user to the right skill for their immediate goal.
+disable-model-invocation: true
 arguments:
   - name: goal
     description: What you want to accomplish right now (free text; the skill picks the best entry point)
@@ -59,59 +60,35 @@ pre-commit, fix-issue, review-pr) require git.
 
 ### 1.2 ClaudeMaxPower already installed?
 
-ClaudeMaxPower is considered installed when all three markers are present:
+Run the shared detector — it checks three install markers (hook script, assemble-team skill,
+CMP-tagged CLAUDE.md) and prints `yes` or `no`:
 
-- `.claude/hooks/session-start.sh` exists
-- `skills/assemble-team.md` exists
-- `CLAUDE.md` exists and contains the string `ClaudeMaxPower`
-
-Record `CMP_INSTALLED=yes|no`.
+```bash
+CMP_INSTALLED="$(bash skills/references/detect-cmp-installation.sh .)"
+```
 
 ### 1.3 New or existing project?
 
-Count source files that are not part of ClaudeMaxPower:
+Run the shared classifier — it applies the file-count + README + source-tree heuristic
+and prints `new` or `existing`:
 
 ```bash
-# Rough heuristic — count files outside .claude, skills, docs, scripts, workflows.
-# Use `*/X/*` (not `./X/*`) so nested vendor/build dirs are also excluded —
-# a project with sub-package node_modules or examples/.venv otherwise drowns
-# the count and forces a false `existing` classification.
-find . -type f \
-  -not -path './.git/*' \
-  -not -path './.claude/*' \
-  -not -path './skills/*' \
-  -not -path './docs/*' \
-  -not -path './scripts/*' \
-  -not -path './workflows/*' \
-  -not -path '*/node_modules/*' \
-  -not -path '*/.venv/*' \
-  -not -path '*/__pycache__/*' \
-  -not -path '*/dist/*' \
-  -not -path '*/build/*' \
-  -not -path '*/target/*' \
-  | wc -l
+PROJECT_KIND="$(bash skills/references/detect-project-kind.sh .)"
 ```
-
-If fewer than 10 non-CMP files AND no `README.md` (or only the CMP one) AND no source tree
-(`src/`, `app/`, `lib/`, package.json, pyproject.toml, go.mod, Cargo.toml): `PROJECT_KIND=new`.
-Otherwise: `PROJECT_KIND=existing`.
 
 The `mode` argument overrides detection. If `mode=new-project` or `mode=existing-project`,
 use that value. Otherwise use the detection result.
 
 ### 1.4 Detect tech stack
 
-Probe for each and record which exist:
+Run the shared detector — same probes as `/assemble-team` uses, so results are consistent:
 
-- `package.json` -> Node/JS/TS
-- `requirements.txt`, `pyproject.toml`, `Pipfile` -> Python
-- `go.mod` -> Go
-- `Cargo.toml` -> Rust
-- `pom.xml`, `build.gradle` -> Java/JVM
-- `Gemfile` -> Ruby
+```bash
+TECH_STACK="$(bash skills/references/detect-stack.sh .)"
+```
 
-Record `TECH_STACK` as a comma-separated list. Used later to tailor pre-commit checks and
-test runners.
+Output is comma-separated (`node,python,go`...) or `none`. Used later to tailor pre-commit
+checks and test runners.
 
 ## Step 2 — Install ClaudeMaxPower (only if not present)
 
@@ -185,26 +162,28 @@ contents unless the user asks.
 
 ### 6.1 If a `goal` argument was provided, classify it
 
-Match against these intent keywords (case-insensitive, any match counts):
+Run the shared router — it does the keyword-table lookup deterministically and prints the
+matched skill plus a one-line rationale:
 
-| Keywords | Route |
-|---------|------|
-| `bug`, `fix`, `error`, `broken`, `crash`, `regression` | `/superpowers:systematic-debugging` (or `/fix-issue` if a GitHub issue number is mentioned) |
-| `new feature`, `add`, `build`, `create`, `implement` | `/superpowers:brainstorming` (hard gate) |
-| `review`, `pr`, `pull request` | `/review-pr` |
-| `refactor`, `rename`, `extract`, `cleanup` | `/refactor-module` |
-| `test`, `tdd`, `coverage` | `/superpowers:test-driven-development` |
-| `docs`, `readme`, `documentation` | `/generate-docs` |
-| `team`, `parallel`, `several tasks` | `/assemble-team` |
-| `commit message`, `commit msg`, `conventional commit` | `/gen-commit-message` |
+```bash
+bash skills/references/route-goal.sh "$GOAL"
+```
 
-When you route, do not execute the downstream skill yourself. Tell the user the exact
-command to run and a one-line rationale. Example:
+Exit codes:
+
+- `0` — one route matched. Stdout is `<skill>\t<rationale>`. Tell the user the exact
+  command to run, prefixed with the rationale. Do not execute the downstream skill
+  yourself.
+- `1` — multiple routes matched. Stdout lists each candidate. Ask the user which one they
+  meant before routing.
+- `3` — nothing matched. Fall through to Step 6.2 (show the menu).
+
+Example output when one route matches:
 
 ```
 Route: /superpowers:brainstorming user-auth
-Why: you asked to "add authentication" — we brainstorm the spec first (hard gate) before
-any code is written. Install the Superpowers plugin first with
+Why: Feature/build language — brainstorming is the hard gate before any new code.
+Install the Superpowers plugin first with
 /plugin install superpowers@claude-plugins-official if it's not already active.
 ```
 

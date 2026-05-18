@@ -95,16 +95,16 @@ result = function_name(arg1, arg2)
 ```
 
 ### Step 4: Update docs index
-Update or create `docs/api/README.md` with a table of all documented modules:
 
-```markdown
-# API Reference
+Run the shared index generator — it walks `docs/api/*.md`, extracts the H1 + one-line
+description, and writes the table back to `docs/api/README.md`:
 
-| Module | Description |
-|--------|-------------|
-| [foo](foo.md) | <one-liner> |
-| [bar](bar.md) | <one-liner> |
+```bash
+bash skills/references/update-docs-index.sh docs/api
 ```
+
+The script is fully deterministic — running it twice on the same input produces byte-
+identical output. No AI judgment is needed for the index regeneration.
 
 ### Step 5: Report
 Tell the user:

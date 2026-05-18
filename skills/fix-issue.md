@@ -1,6 +1,7 @@
 ---
 name: fix-issue
 description: Fix a GitHub issue end-to-end — reads the issue, reproduces the bug with a test, fixes the code, and opens a PR.
+disable-model-invocation: true
 arguments:
   - name: issue
     description: GitHub issue number
@@ -29,15 +30,16 @@ Fix a GitHub issue from start to finish, following TDD principles.
 ## Workflow
 
 ### Step 1: Load environment and gate on required arguments
-Load `.env` if it exists, then resolve `--repo`:
+
+Run the shared resolver — it loads `.env` safely (no `xargs`-based word-splitting) and
+resolves `REPO` from `$REPO -> $DEFAULT_REPO`:
 
 ```bash
-[ -f .env ] && export $(grep -v '^#' .env | xargs)
-REPO="${REPO:-$DEFAULT_REPO}"
+eval "$(bash skills/references/load-env-and-resolve-repo.sh)"
 ```
 
-If `REPO` is still empty, **stop and ask the user** (use AskUserQuestion if available, or
-prompt directly): "Which repository should I target? Format: `owner/repo`."
+If `REPO` is still empty after the eval, **stop and ask the user** (use AskUserQuestion if
+available, or prompt directly): "Which repository should I target? Format: `owner/repo`."
 Do not proceed past Step 1 with an empty `REPO`.
 
 If `ISSUE` is missing entirely, ask the user for the issue number before continuing.
@@ -56,6 +58,16 @@ Use Grep and Glob to locate files related to the issue. Look for:
 - Function names mentioned in the issue
 - File paths referenced in the error
 - Related test files
+
+Once you have a likely source file, list its conventional test-file candidates with the
+shared finder (used by `/refactor-module` too — same convention, same output):
+
+```bash
+bash skills/references/find-test-file.sh "$AFFECTED_SRC" || true
+```
+
+If no existing test file is found, you'll create one in Step 4 at the first candidate
+location the script would have printed.
 
 ### Step 4: Write a failing test (TDD first)
 Before touching any implementation:

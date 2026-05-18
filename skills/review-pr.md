@@ -1,6 +1,7 @@
 ---
 name: review-pr
 description: Full PR review — reads the diff, checks for bugs/security/tests/style, and posts a structured review comment via GitHub CLI.
+disable-model-invocation: true
 arguments:
   - name: pr
     description: Pull request number
@@ -26,13 +27,16 @@ Perform a thorough code review of a GitHub pull request and post structured feed
 ## Workflow
 
 ### Step 1: Load environment and gate on required arguments
+
+Run the shared resolver — it loads `.env` safely and resolves `REPO` from
+`$REPO -> $DEFAULT_REPO`:
+
 ```bash
-[ -f .env ] && export $(grep -v '^#' .env | xargs)
-REPO="${REPO:-$DEFAULT_REPO}"
+eval "$(bash skills/references/load-env-and-resolve-repo.sh)"
 ```
 
-If `REPO` is still empty, **stop and ask the user** (use AskUserQuestion if available, or
-prompt directly): "Which repository should I target? Format: `owner/repo`."
+If `REPO` is still empty after the eval, **stop and ask the user** (use AskUserQuestion if
+available, or prompt directly): "Which repository should I target? Format: `owner/repo`."
 Do not proceed past Step 1 with an empty `REPO`.
 
 If `PR` is missing, ask the user for the PR number before continuing.
