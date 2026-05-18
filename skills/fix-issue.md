@@ -73,9 +73,11 @@ location the script would have printed.
 Before touching any implementation:
 1. Find the relevant test file (or create one if none exists)
 2. Write a test that fails with the current broken behavior
-3. Run the tests and confirm the new test is RED:
+3. Run the tests and confirm the new test is RED. Use the shared runner — it
+   stack-detects via `detect-stack.sh` and picks the right command, so this
+   works on Python and Node projects without hardcoding either:
 ```bash
-python -m pytest tests/ -v --tb=short -k "test_<relevant_name>"
+bash skills/references/run-tests.sh "$TEST_FILE" "test_<relevant_name>"
 ```
 
 ### Step 5: Fix the bug
@@ -84,7 +86,7 @@ Do not refactor unrelated code. Do not change existing tests.
 
 ### Step 6: Verify all tests are green
 ```bash
-python -m pytest tests/ -v --tb=short
+bash skills/references/run-tests.sh
 ```
 If any tests fail (including pre-existing ones), fix them before proceeding.
 

@@ -48,9 +48,14 @@ tests is risky. If multiple candidates exist, prefer the first line (priority or
 script reflects project conventions).
 
 ### Step 3: Capture test baseline
+
+Use the shared runner so the same command works for Python and Node projects
+(internally it stack-detects via `detect-stack.sh`):
+
 ```bash
-python -m pytest <test-file> -v --tb=short 2>&1 | tee /tmp/baseline-results.txt
+bash skills/references/run-tests.sh "$TEST_FILE" 2>&1 | tee /tmp/baseline-results.txt
 ```
+
 Record:
 - Total tests: X passed, Y failed (note: Y should be 0 before refactoring)
 - Test names
@@ -71,7 +76,7 @@ Make targeted changes using the Edit tool. Prefer:
 
 ### Step 6: Run tests after refactor
 ```bash
-python -m pytest <test-file> -v --tb=short
+bash skills/references/run-tests.sh "$TEST_FILE"
 ```
 
 If any tests fail:

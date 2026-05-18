@@ -1,6 +1,7 @@
 ---
 name: assemble-team
 description: Analyze a project and assemble an optimal agent team — enforces brainstorming/spec gate before implementation for new-project mode.
+disable-model-invocation: true
 arguments:
   - name: mode
     description: "new-project or existing-project"
