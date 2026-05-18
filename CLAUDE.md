@@ -72,16 +72,15 @@ against the code before applying it. Details:
 
 ## Workflow
 
-```
-Idea
- ├─ /superpowers:brainstorming                 → docs/specs/YYYY-MM-DD-<topic>-design.md (hard gate)
- ├─ /superpowers:writing-plans                 → docs/plans/YYYY-MM-DD-<topic>-plan.md
- ├─ /superpowers:using-git-worktrees           → isolated branch workspace
- ├─ /superpowers:subagent-driven-development   → fresh subagent per task + two-stage review
- │    └─ /superpowers:test-driven-development      (strict Red-Green-Refactor)
- │    └─ /superpowers:systematic-debugging         (root cause before fix)
- └─ /superpowers:finishing-a-development-branch → merge / PR / keep / discard + worktree cleanup
-```
+The unified Superpowers pipeline, in order:
+`/superpowers:brainstorming` (hard gate) → `/superpowers:writing-plans` →
+`/superpowers:using-git-worktrees` → `/superpowers:subagent-driven-development`
+(invokes `/superpowers:test-driven-development` and `/superpowers:systematic-debugging`
+as needed) → `/superpowers:finishing-a-development-branch`.
+
+Full diagram with deliverables, hard-gate annotations, and per-step iron-law tags:
+[`rules/20-workflow.md`](./rules/20-workflow.md). That file is the canonical source — if
+the pipeline changes, edit it there and let this paragraph re-summarize on the next pass.
 
 Methodology skills live upstream — install with
 `/plugin install superpowers@claude-plugins-official`.
