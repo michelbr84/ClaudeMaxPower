@@ -152,6 +152,9 @@ jobs:
       - name: Self-test hook scripts
         run: bash scripts/test-hooks.sh
 
+      - name: Self-test shared reference scripts
+        run: bash scripts/test-references.sh
+
   check-structure:
     name: Verify Project Structure
     runs-on: ubuntu-latest
