@@ -22,6 +22,9 @@
 #                                    found (exit 0), bad input (exit 2).
 #   update-docs-index.sh           — empty dir (exit 1), dir with modules
 #                                    (writes README.md with table).
+#   run-tests.sh                   — bad target (exit 3), unsupported stack
+#                                    (exit 2 with hint), python stack routes
+#                                    to pytest (verified via dry-runnable env).
 #
 # Usage:
 #   bash scripts/test-references.sh
@@ -315,6 +318,51 @@ if [ -f "$WS/README.md" ] && grep -q "alpha" "$WS/README.md" && grep -q "beta" "
   pass=$((pass + 1))
 else
   echo -e "  ${RED}[FAIL]${NC} README.md missing module entries"
+  fail=$((fail + 1))
+fi
+
+# ── run-tests.sh ─────────────────────────────────────────────────────────────
+note "run-tests.sh"
+
+# 1. Bad target -> exit 3 (path doesn't exist)
+set +e
+bash "$REF_DIR/run-tests.sh" "/path/does/not/exist/$$" 2>/dev/null
+rc=$?
+set -e
+assert_exit "nonexistent target -> exit 3" 3 "$rc"
+
+# 2. Unsupported stack -> exit 2 (empty workspace, no manifests)
+WS="$CMP_TMPDIR/run-tests-none"; mkdir -p "$WS"
+set +e
+( cd "$WS" && bash "$REF_DIR/run-tests.sh" 2>/dev/null )
+rc=$?
+set -e
+assert_exit "no manifests -> exit 2" 2 "$rc"
+
+# 3. Python stack routes to pytest. Verify by stubbing `python` on PATH so the
+#    helper invokes our recorder instead of the real interpreter. The recorder
+#    captures argv and exits 0 — enough to confirm the routing without needing
+#    pytest installed in the test env.
+WS="$CMP_TMPDIR/run-tests-py"; mkdir -p "$WS"
+touch "$WS/pyproject.toml"
+BIN="$CMP_TMPDIR/run-tests-py-bin"; mkdir -p "$BIN"
+cat > "$BIN/python" <<EOF
+#!/usr/bin/env bash
+echo "ARGS: \$*" > "$WS/captured.txt"
+exit 0
+EOF
+chmod +x "$BIN/python"
+set +e
+( cd "$WS" && PATH="$BIN:$PATH" bash "$REF_DIR/run-tests.sh" "" "my_filter" >/dev/null 2>&1 )
+rc=$?
+set -e
+assert_exit "python stack routes (exit 0 from stub)" 0 "$rc"
+if [ -f "$WS/captured.txt" ] && grep -q -- "-m pytest" "$WS/captured.txt" && grep -q -- "-k my_filter" "$WS/captured.txt"; then
+  echo -e "  ${GREEN}[PASS]${NC} python stack invoked pytest with -k filter"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} pytest invocation not captured as expected"
+  [ -f "$WS/captured.txt" ] && cat "$WS/captured.txt" | awk '{print "      " $0}'
   fail=$((fail + 1))
 fi
 

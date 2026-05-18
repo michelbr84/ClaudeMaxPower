@@ -205,6 +205,7 @@ Current reference files:
 | `skills/references/detect-stack.sh` | `/max-power` Step 1.4 and `/assemble-team` Step 2 (manifest probes for node/python/go/rust/jvm/ruby) |
 | `skills/references/load-env-and-resolve-repo.sh` | `/fix-issue` Step 1 and `/review-pr` Step 1 (safe `.env` load + `REPO` resolver — emits `export` lines for `eval`) |
 | `skills/references/find-test-file.sh` | `/refactor-module` Step 2 and `/fix-issue` Step 3 (convention-based test-file discovery for py/ts/tsx/js/jsx/go/rs/rb) |
+| `skills/references/run-tests.sh` | `/fix-issue` Steps 4 + 6 and `/refactor-module` Steps 3 + 6 (stack-aware test runner — pytest for Python, `npm test` for Node; exit 2 for unsupported stacks) |
 | `skills/references/extract-api-python.sh` | `/generate-docs` Step 1 (Python API surface extraction) |
 | `skills/references/extract-api-typescript.sh` | `/generate-docs` Step 1 (TypeScript/JavaScript API surface extraction) |
 | `skills/references/update-docs-index.sh` | `/generate-docs` Step 4 (regenerates `docs/api/README.md` from H1 + first blockquote of each module page) |
