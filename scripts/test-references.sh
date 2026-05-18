@@ -362,7 +362,7 @@ if [ -f "$WS/captured.txt" ] && grep -q -- "-m pytest" "$WS/captured.txt" && gre
   pass=$((pass + 1))
 else
   echo -e "  ${RED}[FAIL]${NC} pytest invocation not captured as expected"
-  [ -f "$WS/captured.txt" ] && cat "$WS/captured.txt" | awk '{print "      " $0}'
+  [ -f "$WS/captured.txt" ] && awk '{print "      " $0}' "$WS/captured.txt"
   fail=$((fail + 1))
 fi
 
