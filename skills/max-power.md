@@ -202,9 +202,10 @@ When you route, do not execute the downstream skill yourself. Tell the user the 
 command to run and a one-line rationale. Example:
 
 ```
-Route: /brainstorming user-auth
+Route: /superpowers:brainstorming user-auth
 Why: you asked to "add authentication" — we brainstorm the spec first (hard gate) before
-any code is written.
+any code is written. Install the Superpowers plugin first with
+/plugin install superpowers@claude-plugins-official if it's not already active.
 ```
 
 ### 6.2 If no goal was provided, show the menu
