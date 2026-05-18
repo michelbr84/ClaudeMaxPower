@@ -195,7 +195,9 @@ The tests add `src/` to `sys.path` automatically, so you don't need to install t
 ("4 failed, 9 passed").
 
 **This is expected.** The example app ships with three intentional bugs that
-demonstrate `/fix-issue`, `/tdd-loop`, and `/pre-commit`. As of the audit-driven
+demonstrate `/fix-issue`, `/superpowers:test-driven-development` (Superpowers
+plugin — install with `/plugin install superpowers@claude-plugins-official`),
+and the auto-firing `.claude/hooks/pre-commit-check.sh` hook. As of the audit-driven
 update, `verify.sh` treats these failures as informational by default and exits 0
 when every *infrastructure* check passes.
 

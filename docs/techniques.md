@@ -85,8 +85,8 @@ allowed-tools: Bash, Read, Edit, Glob, Grep
 - [`skills/fix-issue.md`](../skills/fix-issue.md)
 - [`skills/review-pr.md`](../skills/review-pr.md)
 - [`skills/refactor-module.md`](../skills/refactor-module.md)
-- [`skills/tdd-loop.md`](../skills/tdd-loop.md)
-- [`skills/pre-commit.md`](../skills/pre-commit.md)
+- `/superpowers:test-driven-development` — strict TDD loop (upstream Superpowers plugin)
+- [`.claude/hooks/pre-commit-check.sh`](../.claude/hooks/pre-commit-check.sh) + [`skills/gen-commit-message.md`](../skills/gen-commit-message.md) — deterministic checks (auto-fire) + Conventional Commits message generator
 - [`skills/generate-docs.md`](../skills/generate-docs.md)
 
 ---
@@ -198,7 +198,7 @@ The Reviewer has never seen the implementation, so the review is genuinely indep
 Claude reads stderr, navigates to source files, applies fixes, and re-runs — recursively, without you watching.
 
 **Implemented in ClaudeMaxPower:**
-- [`skills/tdd-loop.md`](../skills/tdd-loop.md) — max 10 iterations, reports progress each time
+- `/superpowers:test-driven-development` — strict Red-Green-Refactor loop (upstream Superpowers plugin)
 - [`examples/tdd-demo/`](../examples/tdd-demo/) — demo project for practicing this
 
 ---
@@ -259,7 +259,8 @@ Grep first, then fix — never guess the scope.
 > "Analyze `git diff --cached`. Check for Tailwind conflicts and TypeScript rule violations. Fix any linting issues in staged files. If everything is clean, generate a Conventional Commits message."
 
 **Implemented in ClaudeMaxPower:**
-- [`skills/pre-commit.md`](../skills/pre-commit.md) — secret scan, debug detection, linter, commit message
+- [`.claude/hooks/pre-commit-check.sh`](../.claude/hooks/pre-commit-check.sh) — secret scan, debug-statement detection, large-file warning, linter (auto-fires before every `git commit`)
+- [`skills/gen-commit-message.md`](../skills/gen-commit-message.md) — Conventional Commits message generator
 
 ---
 
