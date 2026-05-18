@@ -7,6 +7,9 @@
 .estado*.md
 .claude/audit.log
 
+# Claude Code runtime artifacts (scheduler lock, per-session pid file)
+.claude/scheduled_tasks.lock
+
 # Python
 __pycache__/
 *.py[cod]
