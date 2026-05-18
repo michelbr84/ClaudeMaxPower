@@ -35,11 +35,17 @@ Read the full implementation file. Understand:
 - Any TODOs or known issues
 
 ### Step 2: Find and read the test file
-Look for a corresponding test file:
+
+Run the shared test-file finder — it knows the conventional paths for Python, TS/JS, Go,
+Rust, and Ruby and prints each existing candidate in priority order:
+
 ```bash
-# Examples: tests/test_foo.py, __tests__/foo.test.ts, foo.spec.js
+TEST_FILES="$(bash skills/references/find-test-file.sh "$FILE")" || TEST_FILES=""
 ```
-If no test file exists, stop and tell the user. A refactor without tests is risky.
+
+If `$TEST_FILES` is empty (script exited 1), stop and tell the user. A refactor without
+tests is risky. If multiple candidates exist, prefer the first line (priority order in the
+script reflects project conventions).
 
 ### Step 3: Capture test baseline
 ```bash

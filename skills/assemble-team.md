@@ -39,12 +39,15 @@ Before analyzing the project or composing any team, verify that the work has bee
 
 **For `new-project` mode:** a design spec MUST exist under `docs/specs/`. If none exists, stop and instruct the user to run `/superpowers:brainstorming <feature>` first (install the Superpowers plugin with `/plugin install superpowers@claude-plugins-official` if not already installed). This is a hard gate — do not proceed, do not spawn agents, do not plan tasks.
 
+Run the shared gate check — it prints the most recent design spec on success and exits 1
+when none exists:
+
 ```bash
-ls docs/specs/*-design.md 2>/dev/null
+SPEC="$(bash skills/references/check-spec-gate.sh docs/specs)" || SPEC=""
 ```
 
-- If the command returns one or more files, read the most recent design spec and use it as the source of truth for Step 2 onwards.
-- If the command returns nothing, respond to the user with:
+- If `$SPEC` is non-empty, read that file and use it as the source of truth for Step 2 onwards.
+- If `$SPEC` is empty (script exited 1), respond to the user with:
 
   > No design spec found in `docs/specs/`. Run `/superpowers:brainstorming <feature>` first to produce an approved spec, then re-run `/assemble-team`. (Install the Superpowers plugin with `/plugin install superpowers@claude-plugins-official` if it isn't already installed.)
 
@@ -53,7 +56,7 @@ ls docs/specs/*-design.md 2>/dev/null
 **For `existing-project` mode:** check for pending specs and evaluate goal concreteness.
 
 ```bash
-ls docs/specs/*-design.md 2>/dev/null
+SPEC="$(bash skills/references/check-spec-gate.sh docs/specs)" || SPEC=""
 ```
 
 - If `--goals` is vague (e.g. "improve the app", "make it better", "modernize", "clean up"), **stop and ask the user explicitly**:
@@ -65,7 +68,7 @@ ls docs/specs/*-design.md 2>/dev/null
   Treat any answer other than an explicit "yes" as no, and stop. Do not silently fall
   through to the team build.
 - If `--goals` is concrete — references GitHub issues (`#10 #11 #12`), specific file TODOs, named features, or points to an existing spec in `docs/specs/` — proceed to Step 1.
-- If specs exist in `docs/specs/`, read them and use them alongside `--goals` when designing the team.
+- If `$SPEC` is non-empty, read it and use it alongside `--goals` when designing the team.
 
 State clearly in the chat: "No implementation until spec is approved — this is the same hard gate enforced by /superpowers:brainstorming."
 
@@ -94,7 +97,11 @@ If mode is missing or invalid, ask the user.
 **For existing-project mode:**
 1. Read the project root: `CLAUDE.md`, `README.md`, `package.json` or `requirements.txt`
 2. Map the directory structure with `Glob("**/*")`
-3. Identify the tech stack (languages, frameworks, test runner)
+3. Identify the tech stack with the shared detector — same probes `/max-power` uses, so
+   results are consistent across skills:
+   ```bash
+   TECH_STACK="$(bash skills/references/detect-stack.sh .)"
+   ```
 4. Parse the goals:
    - If goals reference GitHub issues, fetch them with `gh issue view`
    - If goals are free-text, break them into discrete tasks
