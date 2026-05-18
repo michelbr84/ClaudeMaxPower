@@ -16,11 +16,9 @@ commit time is owned by [60-security-privacy.md](60-security-privacy.md).
 - Use **Conventional Commits** format: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`,
   `test:`.
 - Subject lines stay short; details go in the body.
-- The deterministic pre-commit checks (secret scan, debug-statement scan, large-file warning,
-  linter pass) run automatically via `.claude/hooks/pre-commit-check.sh` — no skill
-  invocation needed before `git commit`.
-- The LLM-judgment portion of the old `/pre-commit` skill (proposing the message itself)
-  lives in `/gen-commit-message` — see [40-skills.md](40-skills.md).
+- For what the pre-commit hook checks and how `/gen-commit-message` fits in, see
+  [40-skills.md § Invocation Discipline](40-skills.md#invocation-discipline) — that file
+  owns the full description so the two policies do not drift apart.
 
 ## Branch Finishing
 
