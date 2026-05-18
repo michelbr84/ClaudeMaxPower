@@ -195,11 +195,19 @@ Current reference files:
 | File | Used by |
 |---|---|
 | `skills/references/team-roster.md` | `/assemble-team` Step 3 (role catalogue, composition rules, spawn order, dependencies) |
+| `skills/references/check-spec-gate.sh` | `/assemble-team` Step 0 (brainstorming-gate spec presence check; exits 0 with path of most recent spec, 1 if none) |
 | `skills/references/review-pr-checklist.md` | `/review-pr` Step 3 (Correctness/Security/Tests/Style/Breaking/Operational checklist) |
 | `skills/references/max-power-install-strategies.md` | `/max-power` Step 2 (in-place / subdirectory / tarball-fallback install commands) |
 | `skills/references/max-power-status-dashboard.md` | `/max-power` Step 7 (status block template) |
+| `skills/references/detect-cmp-installation.sh` | `/max-power` Step 1.2 (3-marker CMP-install check; prints yes/no) |
+| `skills/references/detect-project-kind.sh` | `/max-power` Step 1.3 (file-count + README + source-tree heuristic; prints new/existing) |
+| `skills/references/route-goal.sh` | `/max-power` Step 6.1 (goal-to-skill keyword router; exit codes 0/1/3 = single match / ambiguous / no match) |
+| `skills/references/detect-stack.sh` | `/max-power` Step 1.4 and `/assemble-team` Step 2 (manifest probes for node/python/go/rust/jvm/ruby) |
+| `skills/references/load-env-and-resolve-repo.sh` | `/fix-issue` Step 1 and `/review-pr` Step 1 (safe `.env` load + `REPO` resolver — emits `export` lines for `eval`) |
+| `skills/references/find-test-file.sh` | `/refactor-module` Step 2 and `/fix-issue` Step 3 (convention-based test-file discovery for py/ts/tsx/js/jsx/go/rs/rb) |
 | `skills/references/extract-api-python.sh` | `/generate-docs` Step 1 (Python API surface extraction) |
 | `skills/references/extract-api-typescript.sh` | `/generate-docs` Step 1 (TypeScript/JavaScript API surface extraction) |
+| `skills/references/update-docs-index.sh` | `/generate-docs` Step 4 (regenerates `docs/api/README.md` from H1 + first blockquote of each module page) |
 
 When you write a new skill: if the body grows past ~150 lines or contains a long table /
 checklist / template that would be useful to other skills, extract it to
