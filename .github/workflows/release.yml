@@ -9,6 +9,7 @@ jobs:
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
 
@@ -30,7 +31,8 @@ jobs:
 
           # Check for secrets
           if grep -rn -E "ghp_[a-zA-Z0-9]{36}" \
-            --include="*.sh" --include="*.md" --include="*.json" \
+            --include="*.sh" --include="*.md" --include="*.json" --include="*.py" \
+            --include="*.yml" \
             --exclude-dir=".git" .; then
             echo "ERROR: Possible token in source!"
             exit 1

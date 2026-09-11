@@ -33,7 +33,7 @@ CI is defined in `.github/workflows/ci.yml`. The gating jobs are:
 
 | Job | Tool / pinned version | Notes |
 |---|---|---|
-| Validate Shell Scripts | shellcheck `v0.10.0` | Lints `.claude/hooks/*.sh`, `workflows/*.sh`, `scripts/*.sh`, `skills/references/*.sh`. |
+| Validate Shell Scripts | shellcheck `v0.10.0` | Lints `.claude/hooks/*.sh`, `workflows/*.sh`, `scripts/*.sh`, `skills/references/*.sh`, `examples/*/*.sh`. |
 | Validate GitHub Actions Workflows | actionlint `1.7.7` | Lints workflow YAML. |
 | Validate JSON Files | `jq empty` | Validates `.claude/settings.json`, `mcp/*.json`. |
 | Check for Secrets | `grep` | Blocks real-looking `ghp_*` / `sntrys_*` tokens in tracked files. See [60-security-privacy.md](60-security-privacy.md). |
