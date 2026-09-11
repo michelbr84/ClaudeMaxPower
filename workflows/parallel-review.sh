@@ -7,8 +7,9 @@
 # Pattern:
 #   1. Create a worktree for the "Writer" Claude session
 #   2. Writer implements the feature in isolation
-#   3. Create a second worktree for the "Reviewer" Claude session
-#   4. Reviewer reads Writer's diff and produces a structured review
+#   3. Reviewer session receives the Writer's diff in its prompt (read-only —
+#      it runs with Read/Glob/Grep only, so it needs no worktree of its own)
+#   4. Reviewer produces a structured review
 #   5. Report: diff + review side by side
 
 set -euo pipefail
@@ -46,7 +47,6 @@ MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^re
 # Portable temp dir — works on Linux, macOS, and Git Bash/MSYS on Windows.
 CMP_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/cmp.XXXXXX" 2>/dev/null || mktemp -d -t cmp.XXXXXX)"
 WRITER_WORKTREE="$CMP_TMPDIR/writer"
-REVIEWER_WORKTREE="$CMP_TMPDIR/reviewer"
 WRITER_BRANCH="${FEATURE}-writer"
 # Review output lives in cwd (not the tmpdir) so it survives script exit.
 REVIEW_OUTPUT="parallel-review-${FEATURE}.md"
@@ -55,7 +55,6 @@ cleanup() {
   echo ""
   echo "Cleaning up worktrees..."
   git worktree remove --force "$WRITER_WORKTREE" 2>/dev/null || true
-  git worktree remove --force "$REVIEWER_WORKTREE" 2>/dev/null || true
   git branch -D "$WRITER_BRANCH" 2>/dev/null || true
   rm -rf "$CMP_TMPDIR"
 }
@@ -110,7 +109,6 @@ fi
 # ── PHASE 3: Reviewer ────────────────────────────────────────────────────────
 echo ""
 echo -e "${BLUE}Reviewer session: reviewing the implementation...${NC}"
-git worktree add "$REVIEWER_WORKTREE" "$MAIN_BRANCH"
 
 REVIEWER_PROMPT="You are a senior code reviewer. Review the following diff for the feature: $TASK
 

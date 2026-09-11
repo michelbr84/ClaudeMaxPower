@@ -93,7 +93,7 @@ If any tests fail (including pre-existing ones), fix them before proceeding.
 ### Step 7: Create a feature branch and PR
 ```bash
 git checkout -b fix/issue-$ISSUE
-git add -p  # stage only relevant changes
+git add <files you changed>   # stage the files explicitly — interactive `git add -p` hangs without a TTY
 git commit -m "fix: resolve issue #$ISSUE — <short description>
 
 Closes #$ISSUE"

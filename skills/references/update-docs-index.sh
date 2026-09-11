@@ -41,7 +41,11 @@ if [ "${#filtered[@]}" -eq 0 ]; then
   exit 1
 fi
 
-# Sort alphabetically for stable output.
+# Sort alphabetically for stable output. Command-substitution array assignment
+# (not mapfile) keeps bash 3.2 compatibility — the cross-platform smoke job
+# runs this script on macOS. Module paths here are docs/*.md files, not
+# arbitrary user input, so the word-splitting caveat is controlled.
+# shellcheck disable=SC2207
 IFS=$'\n' sorted=( $(printf '%s\n' "${filtered[@]}" | sort) )
 unset IFS
 

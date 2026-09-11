@@ -1,7 +1,7 @@
 ---
 name: team-coordinator
 description: Orchestrates agent teams — analyzes projects, assigns roles, manages task dependencies, and synthesizes results
-model: claude-opus-4-6
+model: z-ai/glm-5.3-flash
 memory: project
 allowed-tools:
   - Read

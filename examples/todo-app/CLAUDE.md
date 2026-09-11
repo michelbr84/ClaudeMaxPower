@@ -25,9 +25,9 @@ Tests must pass before any commit. Do not skip or xfail tests to make them pass.
 
 ## Known Intentional Bugs (for demo purposes)
 
-- Issue #1: `todo.py` — `delete_task()` has an off-by-one error in the index check
-- Issue #2: `todo.py` — `complete_task()` does not validate that the task exists before marking it done
-- Issue #3: `todo.py` — `list_tasks()` sorts incorrectly when tasks have equal priority
+- Issue #1: `todo.py` — `delete_task()` has an off-by-one error: pops `i - 1` instead of `i`
+- Issue #2: `todo.py` — `complete_task()` ignores the requested ID: it always marks the first task done and returns True even for nonexistent IDs
+- Issue #3: `todo.py` — `list_tasks()` sorts by priority ascending (lowest first) instead of descending
 
 These bugs exist to demonstrate the `fix-issue` skill. Do not fix them unless running the skill demo.
 

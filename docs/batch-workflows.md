@@ -65,7 +65,8 @@ Apply a refactoring goal across all files matching a pattern.
 
 ### parallel-review.sh
 
-Writer/Reviewer pattern — two separate Claude sessions, isolated in git worktrees.
+Writer/Reviewer pattern — the Writer session implements in an isolated git
+worktree; the Reviewer session is read-only and reviews the Writer's diff.
 
 ```bash
 ./workflows/parallel-review.sh \
@@ -77,10 +78,12 @@ Writer/Reviewer pattern — two separate Claude sessions, isolated in git worktr
 1. Creates a git worktree for the Writer session
 2. Writer implements the feature in isolation
 3. Gets the diff from the Writer's worktree
-4. Reviewer (second session) reads the diff and produces a structured review
+4. Reviewer (second session, `Read`/`Glob`/`Grep` only) reads the diff and produces a structured review
 5. Outputs combined report (diff + review)
 
-**Why worktrees:** Both sessions work simultaneously without interfering with your working directory or each other.
+**Why a worktree:** The Writer session works in isolation without touching your working
+directory or your in-progress work. The Reviewer never edits files, so it needs no
+worktree of its own.
 
 **See also:** [Parallel Workflows with Worktrees](worktrees-parallel.md)
 

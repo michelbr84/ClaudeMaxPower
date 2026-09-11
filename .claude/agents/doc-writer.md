@@ -1,7 +1,7 @@
 ---
 name: doc-writer
 description: Technical writer agent that generates and maintains documentation — README files, API docs, guides. Uses user memory to adapt to writing style preferences over time.
-model: claude-sonnet-4-6
+model: z-ai/glm-5.3-flash
 memory: user
 allowed-tools:
   - Read

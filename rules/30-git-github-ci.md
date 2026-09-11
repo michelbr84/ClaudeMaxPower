@@ -33,12 +33,12 @@ CI is defined in `.github/workflows/ci.yml`. The gating jobs are:
 
 | Job | Tool / pinned version | Notes |
 |---|---|---|
-| Validate Shell Scripts | shellcheck `v0.10.0` | Lints `.claude/hooks/*.sh`, `workflows/*.sh`, `scripts/*.sh`. |
+| Validate Shell Scripts | shellcheck `v0.10.0` | Lints `.claude/hooks/*.sh`, `workflows/*.sh`, `scripts/*.sh`, `skills/references/*.sh`, `examples/*/*.sh`. |
 | Validate GitHub Actions Workflows | actionlint `1.7.7` | Lints workflow YAML. |
 | Validate JSON Files | `jq empty` | Validates `.claude/settings.json`, `mcp/*.json`. |
 | Check for Secrets | `grep` | Blocks real-looking `ghp_*` / `sntrys_*` tokens in tracked files. See [60-security-privacy.md](60-security-privacy.md). |
 | Verify Project Structure | `test -f` loop | Mirrored in `scripts/verify-ci.sh`. |
-| Cross-Platform Smoke | `scripts/validate-skills.sh`, `scripts/test-hooks.sh` | Runs on Ubuntu, macOS, Windows. |
+| Cross-Platform Smoke | `scripts/validate-skills.sh`, `scripts/test-hooks.sh`, `scripts/test-references.sh` | Runs on Ubuntu, macOS, Windows. |
 
 Non-gating jobs (`continue-on-error: true` or `|| true`):
 

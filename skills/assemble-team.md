@@ -23,6 +23,8 @@ allowed-tools:
   - Glob
   - Grep
   - Agent
+  - TaskCreate
+  - TaskUpdate
 ---
 
 # Skill: assemble-team

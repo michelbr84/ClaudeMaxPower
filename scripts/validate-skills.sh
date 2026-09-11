@@ -6,6 +6,7 @@
 #   * a non-empty `name` field
 #   * a non-empty `description` field
 #   * an `allowed-tools:` list with at least one entry
+#   * (warning) frontmatter name matches the filename stem
 #   * (warning) every entry in allowed-tools is in scripts/known-claude-tools.txt
 #
 # Unknown tool names are warnings by default — Claude Code adds tools over time
@@ -62,6 +63,7 @@ check_file() {
   local in_tools=0
   local tool_count=0
   local unknown_tools=()
+  local mismatched=0
   local line tool
 
   # Read the file line by line, stopping at the closing --- of the frontmatter.
@@ -130,6 +132,18 @@ check_file() {
   if [ -z "$name" ]; then
     echo -e "${RED}[FAIL]${NC} $rel — missing or empty 'name' field"
     errors=$((errors + 1))
+  else
+    # The slash-command generator keys wrappers and their skill references
+    # off the filename stem; a mismatched frontmatter name would point
+    # /<name> at a file that does not exist. Warn only — strict does not
+    # escalate this, so forks with renamed files keep passing CI.
+    local stem
+    stem="$(basename "$file" .md)"
+    if [ "$name" != "$stem" ]; then
+      echo -e "${YELLOW}[WARN]${NC} $rel — frontmatter name '$name' != filename stem '$stem'"
+      warnings=$((warnings + 1))
+      mismatched=1
+    fi
   fi
 
   if [ -z "$description" ]; then
@@ -157,7 +171,7 @@ check_file() {
     done
   fi
 
-  if [ "$errors" -eq 0 ] && [ "${#unknown_tools[@]}" -eq 0 ]; then
+  if [ "$errors" -eq 0 ] && [ "${#unknown_tools[@]}" -eq 0 ] && [ "$mismatched" -eq 0 ]; then
     echo -e "${GREEN}[PASS]${NC} $rel"
   fi
 }
@@ -190,7 +204,7 @@ echo ""
 echo "============================================"
 if [ "$errors" -eq 0 ]; then
   if [ "$warnings" -gt 0 ]; then
-    echo -e "${GREEN}All required-field checks passed${NC} ($warnings unknown-tool warning(s))."
+    echo -e "${GREEN}All required-field checks passed${NC} (warning(s) present)."
   else
     echo -e "${GREEN}All checks passed.${NC}"
   fi

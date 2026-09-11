@@ -1,3 +1,5 @@
+> **Archived** (2026-09-11): historical one-off report, kept for reference only. Current guidance lives in `CLAUDE.md` and [`rules/`](../../rules/00-index.md).
+
 # Rules Migration Report
 
 Extracted the durable rule corpus from the monolithic root `CLAUDE.md` into a first-class

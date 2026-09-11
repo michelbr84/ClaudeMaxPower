@@ -8,7 +8,9 @@
 #
 # What is tested:
 #   load-env-and-resolve-repo.sh   — empty .env case, DEFAULT_REPO fallback,
-#                                    quoted values (the xargs-bug regression).
+#                                    quoted values (the xargs-bug regression),
+#                                    spaced values preserved verbatim, command
+#                                    substitution stored as literal text.
 #   detect-stack.sh                — none, single stack, multi-stack, bad dir.
 #   detect-cmp-installation.sh     — full repo (yes), empty dir (no),
 #                                    partial markers (no).
@@ -24,7 +26,8 @@
 #                                    (writes README.md with table).
 #   run-tests.sh                   — bad target (exit 3), unsupported stack
 #                                    (exit 2 with hint), python stack routes
-#                                    to pytest (verified via dry-runnable env).
+#                                    to pytest (stubbed interpreter), venv
+#                                    interpreter preferred over PATH python3.
 #
 # Usage:
 #   bash scripts/test-references.sh
@@ -136,6 +139,39 @@ out=$( cd "$WS" && eval "$(bash "$REF_DIR/load-env-and-resolve-repo.sh")"; echo 
 rc=$?
 set -e
 assert_eq "comment + quoted value parse cleanly" "REPO=owner/repo" "$out"
+
+# 4. Value containing spaces survives intact (was truncated at the first
+#    space by the old raw-line emitter).
+WS="$CMP_TMPDIR/load-env-spaces"; mkdir -p "$WS"
+cat > "$WS/.env" <<'EOF'
+DEFAULT_REPO="owner with spaces/repo"
+EOF
+set +e
+out=$( cd "$WS" && eval "$(bash "$REF_DIR/load-env-and-resolve-repo.sh")"; echo "REPO=$REPO" )
+rc=$?
+set -e
+assert_eq "spaced value preserved verbatim" "REPO=owner with spaces/repo" "$out"
+
+# 5. Command substitution in a value must be stored as literal text, never
+#    executed at eval time.
+WS="$CMP_TMPDIR/load-env-cmdsub"; mkdir -p "$WS"
+MARKER="$WS/pwned-marker"
+cat > "$WS/.env" <<EOF
+POSTGRES_PASSWORD=\$(touch $MARKER)
+EOF
+set +e
+out=$( cd "$WS" && eval "$(bash "$REF_DIR/load-env-and-resolve-repo.sh")"; echo "PW=$POSTGRES_PASSWORD" )
+rc=$?
+set -e
+assert_exit "cmd-substitution value does not execute" 0 "$rc"
+if [ ! -f "$MARKER" ]; then
+  echo -e "  ${GREEN}[PASS]${NC} substitution marker was not executed"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} .env command substitution executed at eval time"
+  fail=$((fail + 1))
+fi
+assert_eq "cmd-substitution value stored literally" "PW=\$(touch $MARKER)" "$out"
 
 # ── detect-stack.sh ──────────────────────────────────────────────────────────
 note "detect-stack.sh"
@@ -339,19 +375,20 @@ rc=$?
 set -e
 assert_exit "no manifests -> exit 2" 2 "$rc"
 
-# 3. Python stack routes to pytest. Verify by stubbing `python` on PATH so the
-#    helper invokes our recorder instead of the real interpreter. The recorder
+# 3. Python stack routes to pytest. Verify by stubbing `python3` on PATH so the
+#    helper invokes our recorder instead of the real interpreter (bare `python`
+#    is only a fallback now — python3 is the no-venv default). The recorder
 #    captures argv and exits 0 — enough to confirm the routing without needing
 #    pytest installed in the test env.
 WS="$CMP_TMPDIR/run-tests-py"; mkdir -p "$WS"
 touch "$WS/pyproject.toml"
 BIN="$CMP_TMPDIR/run-tests-py-bin"; mkdir -p "$BIN"
-cat > "$BIN/python" <<EOF
+cat > "$BIN/python3" <<EOF
 #!/usr/bin/env bash
 echo "ARGS: \$*" > "$WS/captured.txt"
 exit 0
 EOF
-chmod +x "$BIN/python"
+chmod +x "$BIN/python3"
 set +e
 ( cd "$WS" && PATH="$BIN:$PATH" bash "$REF_DIR/run-tests.sh" "" "my_filter" >/dev/null 2>&1 )
 rc=$?
@@ -363,6 +400,29 @@ if [ -f "$WS/captured.txt" ] && grep -q -- "-m pytest" "$WS/captured.txt" && gre
 else
   echo -e "  ${RED}[FAIL]${NC} pytest invocation not captured as expected"
   [ -f "$WS/captured.txt" ] && awk '{print "      " $0}' "$WS/captured.txt"
+  fail=$((fail + 1))
+fi
+
+# 4. A project .venv interpreter wins over PATH python3 (venv has the deps).
+WS="$CMP_TMPDIR/run-tests-venv"; mkdir -p "$WS/.venv/bin"
+touch "$WS/pyproject.toml"
+cat > "$WS/.venv/bin/python" <<EOF
+#!/usr/bin/env bash
+echo "ARGS: \$*" > "$WS/venv-captured.txt"
+exit 0
+EOF
+chmod +x "$WS/.venv/bin/python"
+set +e
+( cd "$WS" && PATH="$BIN:$PATH" bash "$REF_DIR/run-tests.sh" >/dev/null 2>&1 )
+rc=$?
+set -e
+assert_exit "venv python preferred (exit 0 from stub)" 0 "$rc"
+if [ -f "$WS/venv-captured.txt" ] && grep -q -- "-m pytest" "$WS/venv-captured.txt"; then
+  echo -e "  ${GREEN}[PASS]${NC} venv interpreter invoked pytest"
+  pass=$((pass + 1))
+else
+  echo -e "  ${RED}[FAIL]${NC} venv interpreter was not used"
+  [ -f "$WS/venv-captured.txt" ] && awk '{print "      " $0}' "$WS/venv-captured.txt"
   fail=$((fail + 1))
 fi
 

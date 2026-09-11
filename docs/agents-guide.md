@@ -29,7 +29,7 @@ Claude Code can invoke an agent as a sub-session — it runs independently with 
 ### code-reviewer
 
 **Memory:** project
-**Tools:** Read, Glob, Grep, Bash (read-only)
+**Tools:** Read, Glob, Grep, Bash (read-only commands: diffs, test runners, scans)
 
 A strict senior engineer who reviews code for correctness, security, and maintainability.
 
@@ -62,7 +62,7 @@ Review this diff using the code-reviewer agent:
 ### security-auditor
 
 **Memory:** project
-**Tools:** Read, Glob, Grep, Bash (read-only)
+**Tools:** Read, Glob, Grep, Bash (read-only commands: dependency audits, scanners)
 
 Security engineer performing OWASP Top 10 scans and credential audits.
 
@@ -119,6 +119,38 @@ Generate API documentation for all public functions in src/todo.py using the doc
 
 ---
 
+### team-coordinator
+
+**Memory:** project
+**Tools:** Read, Glob, Grep, Bash, Agent
+
+Team orchestrator — analyzes a project, designs the team composition (3–7 agents),
+creates the shared task list with dependencies, spawns teammates in dependency order,
+and synthesizes results. Does not write code itself.
+
+**Team rules it enforces:**
+- Every team must have a Reviewer
+- New projects must have an Architect; existing projects start with an Analyst
+- Combine roles when the team is small (e.g. Tester + Reviewer)
+
+**Output format:**
+```
+## Team Coordination Report
+**Project**: <name>  **Mode**: new-project / existing-project  **Team**: N agents
+### Team Roster (table: Agent, Role, Tasks, Status)
+### Task Summary (table: #, Task, Owner, Status, Notes)
+### Key Decisions
+### Issues Encountered
+### Recommendations
+```
+
+**Example invocation:**
+```
+Use the team-coordinator agent to assemble a team for: fix issues #10-#12 and add pagination.
+```
+
+---
+
 ## Writing Your Own Agent
 
 Create `.claude/agents/my-agent.md`:
@@ -127,7 +159,7 @@ Create `.claude/agents/my-agent.md`:
 ---
 name: my-agent
 description: What this agent does
-model: claude-sonnet-4-6
+model: z-ai/glm-5.3-flash
 memory: project
 allowed-tools:
   - Read

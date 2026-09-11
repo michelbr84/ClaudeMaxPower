@@ -5,6 +5,10 @@
 # Usage: bash skills/references/extract-api-python.sh <directory>
 #
 # Output: one line per definition, format: <file>:<line>:<signature>
+#
+# Limitation: the regex only matches top-level definitions, not methods
+# nested inside classes or functions. For class-internal APIs, read the
+# file's class section directly.
 
 set -euo pipefail
 

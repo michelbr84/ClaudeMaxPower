@@ -55,8 +55,8 @@ Run each check and record the result. Prefer non-interactive shell commands.
 git rev-parse --is-inside-work-tree 2>/dev/null
 ```
 
-Record `IS_GIT=yes|no`. If no, warn the user — many skills (worktrees, finish-branch,
-pre-commit, fix-issue, review-pr) require git.
+Record `IS_GIT=yes|no`. If no, warn the user — many skills (worktrees, branch
+finishing, fix-issue, review-pr) require git.
 
 ### 1.2 ClaudeMaxPower already installed?
 
@@ -105,12 +105,16 @@ truth.
 Tell the user:
 
 ```
-ClaudeMaxPower already inlines the core Superpowers methodology — brainstorming,
-writing-plans, subagent-dev, tdd-loop, systematic-debugging, using-worktrees, and
-finish-branch are all available right now.
+ClaudeMaxPower routes the core Superpowers methodology through the official
+plugin — brainstorming, writing-plans, subagent-driven-development, TDD,
+systematic-debugging, worktrees, and branch finishing all live under the
+/superpowers:* namespace once the plugin is installed. Legacy unqualified
+names (/brainstorming, /tdd-loop, ...) are caught by /superpowers-redirect
+and pointed at the canonical replacement.
 
-The official Superpowers plugin adds extra skills (frontend-design, mcp-builder,
-writing-clearly-and-concisely, elements-of-style, and more). It is optional.
+The official Superpowers plugin adds extra skills too (frontend-design,
+mcp-builder, writing-clearly-and-concisely, elements-of-style, and more).
+It is optional but recommended — the unified pipeline expects it.
 ```
 
 Decision logic:
@@ -138,8 +142,11 @@ fi
 Capture missing-tool warnings from setup output and surface them:
 
 - `gh` not installed -> `/fix-issue` and `/review-pr` cannot talk to GitHub
+- `gh` not authenticated -> same; setup prints `gh auth login`
 - `jq` not installed -> batch workflows degrade gracefully
 - `graphviz` not installed -> `workflows/dependency-graph.sh` needs it
+- `python3`/`venv` missing -> example-app tooling (pytest) is unavailable; setup prints
+  the package to install and continues
 - `.env` placeholders still unfilled -> warn
 
 Do not fail hard on missing tools. Warn and continue.

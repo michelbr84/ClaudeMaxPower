@@ -56,8 +56,24 @@ if [[ "$FILE_PATH" == *.py ]]; then
   done
 
   if [ -n "$TEST_DIR" ] && [ -d "$TEST_DIR" ]; then
-    echo "Running tests: python -m pytest $TEST_DIR -q --tb=short"
-    if python3 -m pytest "$TEST_DIR" -q --tb=short 2>&1; then
+    # Prefer the project's virtualenv when one exists near the tests. The
+    # system python often lacks the project's dependencies (e.g. the seeded
+    # examples/todo-app/.venv), which would report bogus failures here.
+    PY="python3"
+    PROJ="$(cd "$TEST_DIR/.." && pwd)"
+    for _ in 1 2 3; do
+      if [ -x "$PROJ/.venv/bin/python" ]; then
+        PY="$PROJ/.venv/bin/python"
+        break
+      fi
+      if [ -x "$PROJ/.venv/Scripts/python.exe" ]; then
+        PY="$PROJ/.venv/Scripts/python.exe"
+        break
+      fi
+      PROJ=$(dirname "$PROJ")
+    done
+    echo "Running tests: $PY -m pytest $TEST_DIR -q --tb=short"
+    if "$PY" -m pytest "$TEST_DIR" -q --tb=short 2>&1; then
       echo -e "${GREEN}[PASS]${NC} All tests passed."
     else
       echo -e "${RED}[FAIL]${NC} Tests failed after editing $FILE_PATH"

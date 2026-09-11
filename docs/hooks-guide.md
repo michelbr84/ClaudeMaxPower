@@ -121,9 +121,11 @@ skill (Conventional Commits message generation) now lives in
 **What it does:**
 1. Reads the session summary from `CLAUDE_STOP_HOOK_SUMMARY` environment variable
 2. Prepends the summary to `.estado.md` (most recent first)
-3. Stages `.estado.md` for git (but does not commit)
+3. Skips the write entirely when no real summary was provided (avoids flooding `.estado.md` with placeholder entries)
 
 **Why it matters:** Session state persists across restarts. The next session's `session-start.sh` reads it.
+
+**Note:** `.estado.md` is gitignored (`.estado*.md`) — it stays local to your machine and is never staged or committed.
 
 ---
 

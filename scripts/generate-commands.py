@@ -135,10 +135,34 @@ def main() -> int:
 
     skill_files = sorted(SKILLS_DIR.glob("*.md"))
     skill_metas: list[tuple[str, dict]] = []
+    seen: dict[str, Path] = {}
     for skill_file in skill_files:
-        text = skill_file.read_text(encoding="utf-8")
+        try:
+            text = skill_file.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as exc:
+            print(f"error: cannot read {skill_file}: {exc}", file=sys.stderr)
+            return 1
         meta = parse_frontmatter(text)
         name = meta.get("name") or skill_file.stem
+        # The wrapper file and its body reference the skill by filename —
+        # `skills/<name>.md` only exists when the frontmatter name matches
+        # the filename stem. Prefer the stem and surface the mismatch instead
+        # of emitting a wrapper that points at a nonexistent file.
+        if name != skill_file.stem:
+            print(
+                f"warning: {skill_file}: frontmatter name '{name}' != filename stem "
+                f"'{skill_file.stem}' — generating /{skill_file.stem}",
+                file=sys.stderr,
+            )
+            name = skill_file.stem
+        if name in seen:
+            print(
+                f"error: duplicate skill name '{name}' in {seen[name]} and "
+                f"{skill_file} — wrappers would overwrite each other",
+                file=sys.stderr,
+            )
+            return 1
+        seen[name] = skill_file
         skill_metas.append((name, meta))
 
     current_names = {name for name, _ in skill_metas}

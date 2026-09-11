@@ -153,7 +153,7 @@ echo -e "${D}Mirrors .github/workflows/ci.yml | cache: $CACHE_DIR${N}"
 # --- 1. Shellcheck ---
 sec "Validate Shell Scripts  (shellcheck $SHELLCHECK_VERSION)"
 if ensure_shellcheck; then
-  for path in ".claude/hooks" "workflows" "scripts"; do
+  for path in ".claude/hooks" "workflows" "scripts" "skills/references"; do
     if output=$( "$SHELLCHECK_BIN" "$path"/*.sh 2>&1 ); then
       ok "$path/*.sh"
     else
@@ -161,6 +161,21 @@ if ensure_shellcheck; then
       echo "    ${output//$'\n'/$'\n    '}"
     fi
   done
+  # Example scripts — mirrors ci.yml's "Lint example scripts" step
+  # (shellcheck examples/*/*.sh). The glob is expanded here rather than
+  # passed as a literal so a fork with no example scripts gets a SKIP
+  # instead of a spurious shellcheck "file not found" failure.
+  example_sh=(examples/*/*.sh)
+  if [ -e "${example_sh[0]}" ]; then
+    if output=$( "$SHELLCHECK_BIN" "${example_sh[@]}" 2>&1 ); then
+      ok "examples/*/*.sh"
+    else
+      no "examples/*/*.sh"
+      echo "    ${output//$'\n'/$'\n    '}"
+    fi
+  else
+    skip "examples/*/*.sh (no example scripts present)"
+  fi
 else
   no "shellcheck install (unsupported platform: $PLAT/$ARCH)"
 fi
@@ -197,10 +212,12 @@ else
 fi
 if grep -rn -E "ghp_[a-zA-Z0-9]{36}" \
     --include="*.sh" --include="*.md" --include="*.json" --include="*.py" \
+    --include="*.yml" \
     --exclude-dir=".git" . >/dev/null 2>&1; then
   no "found possible GitHub token in source files"
   grep -rn -E "ghp_[a-zA-Z0-9]{36}" \
     --include="*.sh" --include="*.md" --include="*.json" --include="*.py" \
+    --include="*.yml" \
     --exclude-dir=".git" . | sed 's/^/    /' || true
 else
   ok "no hardcoded GitHub tokens in source"
@@ -222,7 +239,8 @@ REQUIRED=(
   ".claude/hooks/post-tool-use.sh" ".claude/hooks/pre-commit-check.sh"
   ".claude/hooks/stop.sh"
   ".claude/agents/code-reviewer.md" ".claude/agents/security-auditor.md"
-  ".claude/agents/doc-writer.md"
+  ".claude/agents/doc-writer.md" ".claude/agents/team-coordinator.md"
+  "skills/assemble-team.md" "skills/max-power.md"
   "skills/fix-issue.md" "skills/review-pr.md" "skills/refactor-module.md"
   "skills/gen-commit-message.md" "skills/superpowers-redirect.md"
   "skills/generate-docs.md"
@@ -265,8 +283,9 @@ fi
 
 # --- 7. Example tests ---
 # Mirrors the test-examples CI job. CI runs `pytest -v --tb=short` with
-# continue-on-error: true (informational, since 3 todo-app tests are seeded
-# pedagogical bugs), then runs `pytest --collect-only -q` as the gating step.
+# continue-on-error: true (informational, since the 3 seeded pedagogical bugs
+# produce 4 failing tests — bug #2 breaks two), then runs
+# `pytest --collect-only -q` as the gating step.
 # We mirror both — the run is INFO, the collection check is OK/FAIL.
 sec "Run Example Tests  (pytest in examples/todo-app/.venv)"
 VENV_PY=""
@@ -279,7 +298,7 @@ if [ -n "$VENV_PY" ]; then
   if "$VENV_PY" -m pytest examples/todo-app/tests/ -q --tb=line >/dev/null 2>&1; then
     info "todo-app tests: all green (CI run step is non-gating regardless)"
   else
-    info "todo-app tests: failures present (3 are seeded pedagogical bugs — CI non-gating)"
+    info "todo-app tests: failures present (4 from 3 seeded bugs — CI non-gating)"
   fi
   if "$VENV_PY" -m pytest examples/todo-app/tests/ --collect-only -q >/dev/null 2>&1; then
     ok "test collection succeeds (gating in CI)"

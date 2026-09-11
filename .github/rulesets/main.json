@@ -49,7 +49,10 @@
           { "context": "Check for Secrets" },
           { "context": "Lint Markdown" },
           { "context": "Run Example Tests" },
-          { "context": "Verify Project Structure" }
+          { "context": "Verify Project Structure" },
+          { "context": "Cross-Platform Smoke (ubuntu-latest)" },
+          { "context": "Cross-Platform Smoke (macos-latest)" },
+          { "context": "Cross-Platform Smoke (windows-latest)" }
         ]
       }
     }

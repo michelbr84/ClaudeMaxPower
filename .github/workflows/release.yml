@@ -9,6 +9,7 @@ jobs:
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
 
@@ -30,7 +31,9 @@ jobs:
 
           # Check for secrets
           if grep -rn -E "ghp_[a-zA-Z0-9]{36}" \
-            --include="*.sh" --include="*.md" --include="*.json" .; then
+            --include="*.sh" --include="*.md" --include="*.json" --include="*.py" \
+            --include="*.yml" \
+            --exclude-dir=".git" .; then
             echo "ERROR: Possible token in source!"
             exit 1
           fi
@@ -60,7 +63,10 @@ jobs:
             -o ClaudeMaxPower-${{ steps.tag.outputs.version }}.tar.gz
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
+      # Pinned to the v3 commit SHA — a mutable third-party tag is a
+      # supply-chain risk in a workflow with contents:write. Dependabot
+      # tracks the version comment and proposes SHA bumps.
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         with:
           tag_name: ${{ steps.tag.outputs.version }}
           name: "ClaudeMaxPower ${{ steps.tag.outputs.version }}"

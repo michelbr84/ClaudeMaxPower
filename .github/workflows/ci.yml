@@ -2,7 +2,9 @@ name: CI
 
 on:
   push:
-    branches: ["**"]
+    # Only the default branches — feature branches already get CI via the
+    # pull_request trigger below; ["**"] ran every PR branch twice (push + PR).
+    branches: [main, master]
   pull_request:
     branches: [main, master]
 
@@ -13,6 +15,7 @@ jobs:
   validate-shell:
     name: Validate Shell Scripts
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
@@ -33,9 +36,16 @@ jobs:
       - name: Lint setup scripts
         run: shellcheck scripts/*.sh
 
+      - name: Lint skill reference scripts
+        run: shellcheck skills/references/*.sh
+
+      - name: Lint example scripts
+        run: shellcheck examples/*/*.sh
+
   validate-actions:
     name: Validate GitHub Actions Workflows
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
@@ -50,6 +60,7 @@ jobs:
   validate-json:
     name: Validate JSON Files
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v7
 
@@ -64,6 +75,7 @@ jobs:
   validate-no-secrets:
     name: Check for Secrets
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v7
 
@@ -80,6 +92,7 @@ jobs:
           if grep -rn \
             -E "ghp_[a-zA-Z0-9]{36}" \
             --include="*.sh" --include="*.md" --include="*.json" --include="*.py" \
+            --include="*.yml" \
             --exclude-dir=".git" .; then
             echo "ERROR: Possible GitHub token found in source files!"
             exit 1
@@ -89,6 +102,7 @@ jobs:
   lint-markdown:
     name: Lint Markdown
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
@@ -110,6 +124,7 @@ jobs:
   test-examples:
     name: Run Example Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v7
 
@@ -123,7 +138,7 @@ jobs:
 
       - name: Run todo-app tests
         run: python -m pytest examples/todo-app/tests/ -v --tb=short
-        # Note: 3 tests are EXPECTED to fail (they demonstrate bugs for the fix-issue skill demo)
+        # Note: 4 tests are EXPECTED to fail (3 seeded bugs — bug #2 breaks two tests).
         # We only check that pytest can run, not that all tests pass
         continue-on-error: true
 
@@ -139,6 +154,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     defaults:
       run:
         # Force bash on every runner (Git Bash on Windows).
@@ -158,6 +174,7 @@ jobs:
   check-structure:
     name: Verify Project Structure
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - uses: actions/checkout@v7
 
@@ -178,6 +195,9 @@ jobs:
             ".claude/agents/code-reviewer.md"
             ".claude/agents/security-auditor.md"
             ".claude/agents/doc-writer.md"
+            ".claude/agents/team-coordinator.md"
+            "skills/assemble-team.md"
+            "skills/max-power.md"
             "skills/fix-issue.md"
             "skills/review-pr.md"
             "skills/refactor-module.md"
