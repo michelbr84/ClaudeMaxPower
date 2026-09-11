@@ -153,7 +153,7 @@ echo -e "${D}Mirrors .github/workflows/ci.yml | cache: $CACHE_DIR${N}"
 # --- 1. Shellcheck ---
 sec "Validate Shell Scripts  (shellcheck $SHELLCHECK_VERSION)"
 if ensure_shellcheck; then
-  for path in ".claude/hooks" "workflows" "scripts"; do
+  for path in ".claude/hooks" "workflows" "scripts" "skills/references"; do
     if output=$( "$SHELLCHECK_BIN" "$path"/*.sh 2>&1 ); then
       ok "$path/*.sh"
     else

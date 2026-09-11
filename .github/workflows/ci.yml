@@ -33,6 +33,9 @@ jobs:
       - name: Lint setup scripts
         run: shellcheck scripts/*.sh
 
+      - name: Lint skill reference scripts
+        run: shellcheck skills/references/*.sh
+
   validate-actions:
     name: Validate GitHub Actions Workflows
     runs-on: ubuntu-latest
