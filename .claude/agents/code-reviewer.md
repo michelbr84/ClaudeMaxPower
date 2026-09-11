@@ -1,7 +1,7 @@
 ---
 name: code-reviewer
 description: Strict code reviewer focused on correctness, maintainability, and project conventions. Uses project memory to learn and apply project-specific patterns over time.
-model: claude-sonnet-4-6
+model: z-ai/glm-5.3-flash
 memory: project
 allowed-tools:
   - Read

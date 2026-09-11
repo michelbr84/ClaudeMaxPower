@@ -1,7 +1,7 @@
 ---
 name: security-auditor
 description: Security-focused agent that scans code for OWASP Top 10 vulnerabilities, credential leaks, dependency issues, and produces a structured security report.
-model: claude-sonnet-4-6
+model: z-ai/glm-5.3-flash
 memory: project
 allowed-tools:
   - Read

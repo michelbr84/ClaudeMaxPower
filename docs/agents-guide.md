@@ -127,7 +127,7 @@ Create `.claude/agents/my-agent.md`:
 ---
 name: my-agent
 description: What this agent does
-model: claude-sonnet-4-6
+model: z-ai/glm-5.3-flash
 memory: project
 allowed-tools:
   - Read
