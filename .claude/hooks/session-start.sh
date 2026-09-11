@@ -48,8 +48,11 @@ fi
 echo ""
 if [ -f ".env" ]; then
   echo -e "${GREEN}.env file found.${NC}"
-  # Check for unfilled placeholders
-  if grep -q "your_token_here\|your-username/your-repo" .env 2>/dev/null; then
+  # Check for unfilled placeholders. These must match the defaults in
+  # .env.example and the checks in scripts/setup.sh: GITHUB_TOKEN,
+  # DEFAULT_REPO, DB_URL, and POSTGRES_PASSWORD (the DB_URL placeholder
+  # embeds the same change-me password, so one grep covers both).
+  if grep -q "ghp_your_token_here\|your-username/your-repo\|change-me-local-only" .env 2>/dev/null; then
     echo -e "${YELLOW}Warning: .env has unfilled placeholder values. Update before using integrations.${NC}"
   fi
 else
