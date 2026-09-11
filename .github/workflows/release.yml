@@ -30,7 +30,8 @@ jobs:
 
           # Check for secrets
           if grep -rn -E "ghp_[a-zA-Z0-9]{36}" \
-            --include="*.sh" --include="*.md" --include="*.json" .; then
+            --include="*.sh" --include="*.md" --include="*.json" \
+            --exclude-dir=".git" .; then
             echo "ERROR: Possible token in source!"
             exit 1
           fi
