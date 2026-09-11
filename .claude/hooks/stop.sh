@@ -46,13 +46,8 @@ fi
 
 echo -e "${GREEN}Session state saved to $ESTADO_FILE${NC}"
 
-# If inside a git repo, stage the state file
-if git rev-parse --is-inside-work-tree &>/dev/null 2>&1; then
-  if git diff --name-only "$ESTADO_FILE" 2>/dev/null | grep -q "$ESTADO_FILE" || \
-     ! git ls-files --error-unmatch "$ESTADO_FILE" &>/dev/null 2>&1; then
-    git add "$ESTADO_FILE" 2>/dev/null || true
-    echo -e "${YELLOW}Staged $ESTADO_FILE (not committed — commit manually when ready)${NC}"
-  fi
-fi
+# Note: .estado.md is intentionally NOT staged for git. It is gitignored
+# (.estado*.md) as a local-only scratch file — session state stays on the
+# machine that produced it instead of leaking into every clone/PR diff.
 
 echo ""
