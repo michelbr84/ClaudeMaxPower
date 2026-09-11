@@ -113,7 +113,7 @@ Claude Code auto-memory): [`rules/20-workflow.md`](./rules/20-workflow.md).
   before merge/PR (Iron Law #4).
 - **CI gating jobs** (`.github/workflows/ci.yml`): shellcheck v0.10.0, actionlint 1.7.7,
   `jq empty` on JSON, secret scan, project-structure manifest, cross-platform smoke
-  (`validate-skills.sh` + `test-hooks.sh`).
+  (`validate-skills.sh` + `test-hooks.sh` + `test-references.sh`).
 - **CI non-gating jobs**: markdownlint (informational); `examples/todo-app` pytest run
   (3 seeded pedagogical bugs; only `pytest --collect-only` is gating).
 

@@ -128,7 +128,8 @@ The todo-app has intentional bugs to demonstrate skills:
 python -m pytest examples/todo-app/tests/ -v
 ```
 
-You'll see 3 tests fail — those are the bugs the `fix-issue` skill is designed to fix.
+You'll see 4 tests fail — the three seeded bugs produce four failing tests (bug #2
+breaks two). Those are the bugs the `fix-issue` skill is designed to fix.
 
 ### Explore the structure
 
