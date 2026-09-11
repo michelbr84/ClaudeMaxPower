@@ -1,4 +1,4 @@
-> **Archived** (2026-09-11): historical one-off report, kept for reference only. Current guidance lives in `CLAUDE.md` and [`rules/`](../rules/00-index.md).
+> **Archived** (2026-09-11): historical one-off report, kept for reference only. Current guidance lives in `CLAUDE.md` and [`rules/`](../../rules/00-index.md).
 
 # CLAUDE.md Refactor Report
 
