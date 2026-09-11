@@ -98,11 +98,23 @@ Rules:
 
 DOT_CONTENT=$(claude --print \
   --allowedTools "Read,Grep" \
-  "$PROMPT" 2>&1 | grep -A 9999 'digraph' | head -200 || echo "")
+  "$PROMPT" 2>&1 | grep -A 9999 'digraph' || echo "")
+
+# Cap the graph at 200 lines so pathological output can't explode the SVG,
+# but never silently — tell the user the graph was truncated.
+RAW_LINES=$(echo "$DOT_CONTENT" | wc -l)
+DOT_CONTENT=$(echo "$DOT_CONTENT" | head -200)
+if [ "$RAW_LINES" -gt 200 ]; then
+  echo -e "${YELLOW}Warning: Claude output exceeded 200 lines — graph truncated to 200.${NC}"
+fi
 
 if [ -z "$DOT_CONTENT" ]; then
   echo -e "${YELLOW}Could not generate dependency graph from Claude output.${NC}"
   echo "Creating a basic DOT file from import analysis instead..."
+
+  # Exact module-name set — basenames without extension — so the fallback
+  # matches imports against real modules instead of substrings.
+  MODULES=$(echo "$SOURCE_FILES" | while IFS= read -r f; do basename "$f" | sed 's/\.[^.]*$//'; done | sort -u)
 
   # Fallback: basic Python import analysis
   {
@@ -116,7 +128,7 @@ if [ -z "$DOT_CONTENT" ]; then
         awk '{print $2}' | \
         while IFS= read -r DEP; do
           DEP_BASE=$(echo "$DEP" | cut -d. -f1)
-          if echo "$SOURCE_FILES" | grep -q "$DEP_BASE"; then
+          if echo "$MODULES" | grep -qxF -- "$DEP_BASE"; then
             echo "  \"$MODULE\" -> \"$DEP_BASE\";"
           fi
         done
@@ -137,7 +149,12 @@ if [ "$SKIP_SVG" = false ]; then
   if dot -Tsvg "$DOT_FILE" -o "$OUTPUT_FILE" 2>/dev/null; then
     echo -e "${GREEN}Dependency graph saved: $OUTPUT_FILE${NC}"
   else
-    echo -e "${RED}SVG conversion failed. DOT file preserved at: $DOT_FILE${NC}"
+    # The temp DOT is deleted by the EXIT trap — persist a copy next to the
+    # requested output before reporting, or the user has nothing to inspect.
+    DOT_FALLBACK="${OUTPUT_FILE%.svg}.dot"
+    cp "$DOT_FILE" "$DOT_FALLBACK"
+    echo -e "${RED}SVG conversion failed. DOT file preserved at: $DOT_FALLBACK${NC}"
+    echo "Convert manually with: dot -Tsvg $DOT_FALLBACK -o $OUTPUT_FILE"
   fi
 else
   DOT_OUTPUT="${OUTPUT_FILE%.svg}.dot"
