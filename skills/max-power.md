@@ -105,12 +105,16 @@ truth.
 Tell the user:
 
 ```
-ClaudeMaxPower already inlines the core Superpowers methodology — brainstorming,
-writing-plans, subagent-dev, tdd-loop, systematic-debugging, using-worktrees, and
-finish-branch are all available right now.
+ClaudeMaxPower routes the core Superpowers methodology through the official
+plugin — brainstorming, writing-plans, subagent-driven-development, TDD,
+systematic-debugging, worktrees, and branch finishing all live under the
+/superpowers:* namespace once the plugin is installed. Legacy unqualified
+names (/brainstorming, /tdd-loop, ...) are caught by /superpowers-redirect
+and pointed at the canonical replacement.
 
-The official Superpowers plugin adds extra skills (frontend-design, mcp-builder,
-writing-clearly-and-concisely, elements-of-style, and more). It is optional.
+The official Superpowers plugin adds extra skills too (frontend-design,
+mcp-builder, writing-clearly-and-concisely, elements-of-style, and more).
+It is optional but recommended — the unified pipeline expects it.
 ```
 
 Decision logic:

@@ -53,8 +53,13 @@ Use the shared runner so the same command works for Python and Node projects
 (internally it stack-detects via `detect-stack.sh`):
 
 ```bash
-bash skills/references/run-tests.sh "$TEST_FILE" 2>&1 | tee /tmp/baseline-results.txt
+BASELINE_RESULTS="$(mktemp)"
+bash skills/references/run-tests.sh "$TEST_FILE" 2>&1 | tee "$BASELINE_RESULTS"
 ```
+
+Record `$BASELINE_RESULTS` — a unique mktemp path avoids collisions between
+concurrent refactors or a stale `/tmp` file. If Step 6 produces different
+results, diff the two captures to explain the change.
 
 Record:
 - Total tests: X passed, Y failed (note: Y should be 0 before refactoring)
