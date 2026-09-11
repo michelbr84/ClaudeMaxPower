@@ -221,6 +221,10 @@ the YAML frontmatter has the required fields and that every entry in
 `allowed-tools` is a recognised Claude Code tool. By default unknown tools are
 warnings; `--strict` (or `CMP_STRICT_TOOLS=1`) escalates them to failures.
 
+The validator also warns when a file's frontmatter `name` differs from its
+filename stem — the slash-command generator keys wrappers and their skill
+references off the filename, so the two must match for `/name` to resolve.
+
 The known-tool list lives in `scripts/known-claude-tools.txt` — append to it when
 Claude Code introduces a new tool you want to use.
 
