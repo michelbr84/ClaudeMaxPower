@@ -60,7 +60,7 @@ fi
 
 # Hook scripts
 section "Hooks"
-for hook in session-start pre-tool-use post-tool-use stop; do
+for hook in session-start pre-tool-use post-tool-use pre-commit-check stop; do
   f=".claude/hooks/${hook}.sh"
   if [ -f "$f" ]; then
     if [ -x "$f" ]; then
@@ -81,7 +81,7 @@ done
 #   - /pre-commit's deterministic part → .claude/hooks/pre-commit-check.sh
 #   - /pre-commit's LLM part         → skills/gen-commit-message.md
 section "Skills"
-for skill in fix-issue review-pr refactor-module gen-commit-message superpowers-redirect generate-docs; do
+for skill in assemble-team max-power fix-issue review-pr refactor-module gen-commit-message superpowers-redirect generate-docs; do
   f="skills/${skill}.md"
   if [ -f "$f" ]; then
     ok "$f: found"
@@ -92,7 +92,7 @@ done
 
 # Agents
 section "Agents"
-for agent in code-reviewer security-auditor doc-writer; do
+for agent in code-reviewer security-auditor doc-writer team-coordinator; do
   f=".claude/agents/${agent}.md"
   if [ -f "$f" ]; then
     ok "$f: found"
@@ -121,7 +121,16 @@ if [ -d "examples/todo-app/tests" ]; then
   echo -e "${YELLOW}ℹ${NC} the /fix-issue skill and the TDD / pre-commit-hook workflow."
   echo -e "${YELLOW}ℹ${NC} See examples/todo-app/README.md and examples/todo-app/CLAUDE.md."
 
-  if python3 -m pytest examples/todo-app/tests -q --tb=line 2>/dev/null; then
+  # Prefer the example project's virtualenv — the system python may not have
+  # pytest or the todo-app's dependencies installed.
+  VENV_PY=""
+  if [ -x "examples/todo-app/.venv/bin/python" ]; then
+    VENV_PY="examples/todo-app/.venv/bin/python"
+  elif [ -x "examples/todo-app/.venv/Scripts/python.exe" ]; then
+    VENV_PY="examples/todo-app/.venv/Scripts/python.exe"
+  fi
+  [ -n "$VENV_PY" ] || VENV_PY="python3"
+  if "$VENV_PY" -m pytest examples/todo-app/tests -q --tb=line 2>/dev/null; then
     ok "todo-app tests: all passing (bugs may have been fixed already)"
   else
     if [ "$STRICT_EXAMPLES" = "1" ]; then
