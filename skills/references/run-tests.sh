@@ -35,12 +35,40 @@ fi
 
 STACK="$(bash "$SCRIPT_DIR/detect-stack.sh" . 2>/dev/null || echo "none")"
 
+# Resolve the Python interpreter: project venv wins (it has the project's
+# dependencies), then python3 (bare `python` is absent on many systems),
+# then python as a last resort. Relative venv paths execute against cwd,
+# which is the project root detect-stack.sh also probes.
+resolve_py() {
+  if [ -x ".venv/bin/python" ]; then
+    echo ".venv/bin/python"
+    return 0
+  fi
+  if [ -x ".venv/Scripts/python.exe" ]; then
+    echo ".venv/Scripts/python.exe"
+    return 0
+  fi
+  if command -v python3 >/dev/null 2>&1; then
+    echo "python3"
+    return 0
+  fi
+  if command -v python >/dev/null 2>&1; then
+    echo "python"
+    return 0
+  fi
+  return 1
+}
+
 # Python wins over node when both are present — the project's own examples are
 # Python, and the prior hardcoded behaviour was always pytest. Order-stable so
 # callers can reason about which runner fires on mixed projects.
 case ",${STACK}," in
   *,python,*)
-    cmd=(python -m pytest)
+    if ! PY_BIN="$(resolve_py)"; then
+      echo "[run-tests] python project detected, but no python interpreter found." >&2
+      exit 2
+    fi
+    cmd=("$PY_BIN" -m pytest)
     [ -n "$TARGET" ] && cmd+=("$TARGET")
     cmd+=(-v --tb=short)
     [ -n "$FILTER" ] && cmd+=(-k "$FILTER")
