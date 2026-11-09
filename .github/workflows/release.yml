@@ -66,7 +66,7 @@ jobs:
       # Pinned to the v3 commit SHA — a mutable third-party tag is a
       # supply-chain risk in a workflow with contents:write. Dependabot
       # tracks the version comment and proposes SHA bumps.
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
         with:
           tag_name: ${{ steps.tag.outputs.version }}
           name: "ClaudeMaxPower ${{ steps.tag.outputs.version }}"
